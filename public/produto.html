@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Supermercado - Cadastro e Consulta de Produto</title>
+    <style>
+        /* Estilos Gerais */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f9;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 850px;
+}
+
+h1 {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.grid-2, .grid-3 {
+    display: grid;
+    gap: 20px;
+}
+
+.grid-2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.action-buttons {
+    margin-top: 30px;
+    text-align: right;
+}
+
+button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.1s;
+    margin-left: 10px;
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+#btnSalvar {
+    background-color: #28a745;
+    color: white;
+}
+
+#btnSalvar:hover {
+    background-color: #218838;
+}
+
+#btnNovo {
+    background-color: #ffc107;
+    color: #333;
+}
+
+#btnNovo:hover {
+    background-color: #e0a800;
+}
+
+.feedback {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.feedback.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.feedback.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Estilos específicos para o display de preço de venda */
+.price-display {
+    text-align: center;
+    padding: 10px;
+    background-color: #e9ecef;
+    border-radius: 6px;
+    margin-top: 20px;
+}
+
+.price-display p {
+    margin: 5px 0;
+    font-size: 1.1em;
+    color: #555;
+}
+
+.price-display strong {
+    font-size: 1.5em;
+    color: #dc3545; /* Cor de destaque para o preço de venda */
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cadastro e Consulta de Produto</h1>
+
+        <div id="feedbackMessage" class="feedback success">Pronto para buscar ou cadastrar produtos.</div>
+
+        <form id="cadastroForm">
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="codigoBarra">Código de Barras (EAN/GTIN)</label>
+                    <input type="text" id="codigoBarra" name="codigoBarra" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="descricao">Descrição do Produto</label>
+                    <input type="text" id="descricao" name="descricao" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="unidadeMedida">Unidade de Medida</label>
+                <select id="unidadeMedida" name="unidadeMedida" required>
+                    <option value="UN">UN - Unidade</option>
+                    <option value="KG">KG - Quilograma</option>
+                    <option value="MT">MT - Metro</option>
+                </select>
+            </div>
+
+            <hr>
+
+            <h2>Custos e Preços</h2>
+            <div class="grid-3">
+                <div class="form-group">
+                    <label for="custoLiquido">Custo Líquido (R$)</label>
+                    <input type="number" id="custoLiquido" name="custoLiquido" step="0.01" min="0" value="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="margemBruta">Margem Bruta (%)</label>
+                    <input type="number" id="margemBruta" name="margemBruta" step="0.01" min="0" max="100" value="30.00">
+                </div>
+                <div class="form-group">
+                    <label for="precoVenda">Preço de Venda (R$)</label>
+                    <input type="number" id="precoVenda" name="precoVenda" step="0.01" min="0" required value="0.00" readonly>
+                </div>
+            </div>
+
+            <div class="price-display">
+                <p>Preço de Venda Calculado:</p>
+                <strong id="displayPrecoVenda">R$ 0,00</strong>
+            </div>
+
+            <hr>
+
+            <h2>Dados Operacionais</h2>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="estoqueAtual">Estoque Atual</label>
+                    <input type="number" id="estoqueAtual" name="estoqueAtual" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="ncm">NCM (Classificação Fiscal)</label>
+                    <input type="text" id="ncm" name="ncm">
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" id="btnNovo">Novo/Limpar</button>
+                <button type="submit" id="btnSalvar">Salvar/Atualizar Produto</button>
+            </div>
+        </form>
+    </div>
+
+<script>
+    // Variáveis globais (carregadas da sessão)
+    let operadorMatricula = null;
+    let operadorNome = null;
+    let operadorToken = null; // NOVO: Token JWT
+
+    // ==========================================================
+    // 🔐 FUNÇÃO CRÍTICA: GERA HEADERS DE AUTORIZAÇÃO
+    // ==========================================================
+    function getAuthHeaders() {
+        // Envia o token no formato padrão JWT: Authorization: Bearer <token>
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${operadorToken}`
+        };
+    }
+
+    // ==========================================================
+    // 1. FUNÇÕES DE UTILIDADE E CÁLCULO
+    // ==========================================================
+
+    function calculateVendaPrice() {
+        const custoLiquidoStr = document.getElementById('custoLiquido').value.replace(',', '.');
+        const margemBrutaStr = document.getElementById('margemBruta').value.replace(',', '.');
+
+        const custoLiquido = parseFloat(custoLiquidoStr) || 0;
+        const margemBruta = parseFloat(margemBrutaStr) || 0;
+
+        // Fórmula: Preço Venda = Custo Líquido / (1 - Margem Bruta/100)
+        let precoVenda = 0;
+        if (custoLiquido > 0 && margemBruta < 100) {
+            precoVenda = custoLiquido / (1 - (margemBruta / 100));
+        }
+
+        document.getElementById('precoVendaDisplay').textContent = precoVenda.toFixed(2).replace('.', ',');
+    }
+
+    function clearForm(keepCodigoBarra = false) {
+        document.getElementById('feedbackMessage').textContent = '';
+        document.getElementById('formTitle').textContent = 'Cadastrar Novo Produto';
+
+        if (!keepCodigoBarra) {
+            document.getElementById('codigoBarra').value = '';
+        }
+
+        document.getElementById('nome').value = '';
+        document.getElementById('unidadeMedida').value = 'un';
+        document.getElementById('custoLiquido').value = '0.00';
+        document.getElementById('margemBruta').value = '30.00';
+        document.getElementById('estoqueAtual').value = '0';
+        document.getElementById('ativo').checked = true;
+
+        calculateVendaPrice();
+        document.getElementById('codigoBarra').readOnly = false;
+        document.getElementById('codigoBarra').focus();
+    }
+
+    function blockModule() {
+        sessionStorage.clear();
+        window.location.href = 'index.html'; // Redireciona para o login
+    }
+
+    // ==========================================================
+    // 2. FUNÇÕES DE INTERAÇÃO COM O BACKEND (AGORA SEGURAS)
+    // ==========================================================
+
+    // Função para buscar um produto e pré-preencher o formulário
+    async function searchProduct() {
+        const codigoBarra = document.getElementById('codigoBarra').value.trim();
+        const feedback = document.getElementById('feedbackMessage');
+
+        if (!codigoBarra) return;
+
+        feedback.textContent = 'Buscando produto...';
+
+        try {
+            const response = await fetch(`/api/erp/produtos/${codigoBarra}`, {
+                method: 'GET',
+                headers: getAuthHeaders() // <-- ADIÇÃO CRÍTICA
+            });
+
+            const data = await response.json();
+
+            // Tratamento de falha de autorização
+            if (response.status === 401 || response.status === 403) {
+                alert(`Sessão expirada ou acesso negado: ${data.message}. Redirecionando para login.`);
+                blockModule();
+                return;
+            }
+
+            if (response.ok && data.success) {
+                // Produto encontrado, preenche o formulário para edição
+                const produto = data.produto;
+                document.getElementById('nome').value = produto.nome;
+                document.getElementById('unidadeMedida').value = produto.unidade_medida;
+                document.getElementById('custoLiquido').value = produto.custo_liquido.toFixed(2).replace('.', ',');
+                document.getElementById('margemBruta').value = produto.margem_bruta.toFixed(2).replace('.', ',');
+                document.getElementById('estoqueAtual').value = produto.estoque_atual;
+                document.getElementById('ativo').checked = produto.ativo;
+
+                calculateVendaPrice();
+                document.getElementById('codigoBarra').readOnly = true; // Impede alteração do código
+                document.getElementById('formTitle').textContent = `Editar Produto: ${produto.nome}`;
+                feedback.textContent = `✅ Produto encontrado. Pronto para edição.`;
+            } else {
+                // Produto não encontrado, limpa o formulário e prepara para cadastro
+                clearForm(true); // Mantém o código de barras
+                document.getElementById('formTitle').textContent = 'Cadastrar Novo Produto';
+                document.getElementById('codigoBarra').readOnly = true; // Mantém bloqueado até o cadastro
+                feedback.textContent = `⚠️ Código ${codigoBarra} não encontrado. Preencha o formulário para cadastrar.`;
+            }
+
+        } catch (error) {
+            console.error('Erro de rede ao buscar produto:', error);
+            feedback.textContent = '⚠️ Erro de conexão com o servidor.';
+            clearForm();
+        }
+    }
+
+    // Função para cadastrar ou atualizar produto
+    async function handleCadastroProduto(event) {
+        event.preventDefault();
+        const feedback = document.getElementById('feedbackMessage');
+        feedback.textContent = 'Salvando produto...';
+
+        const codigoBarra = document.getElementById('codigoBarra').value.trim();
+        const nome = document.getElementById('nome').value.trim();
+        const unidadeMedida = document.getElementById('unidadeMedida').value;
+        const custoLiquido = parseFloat(document.getElementById('custoLiquido').value.replace(',', '.')) || 0;
+        const margemBruta = parseFloat(document.getElementById('margemBruta').value.replace(',', '.')) || 0;
+        const estoqueAtual = parseInt(document.getElementById('estoqueAtual').value) || 0;
+        const precoVenda = parseFloat(document.getElementById('precoVendaDisplay').textContent.replace(',', '.')) || 0;
+        const ativo = document.getElementById('ativo').checked;
+
+        if (!codigoBarra || !nome || custoLiquido <= 0 || margemBruta <= 0) {
+            feedback.textContent = '❌ Erro: Preencha todos os campos obrigatórios e garanta que custo/margem sejam positivos.';
+            return;
+        }
+
+        const produtoData = {
+            codigo_barra: codigoBarra,
+            nome,
+            unidade_medida: unidadeMedida,
+            custo_liquido: custoLiquido,
+            margem_bruta: margemBruta,
+            preco_venda: precoVenda,
+            estoque_atual: estoqueAtual,
+            ativo
+        };
+
+        try {
+            const response = await fetch('/api/erp/produtos', {
+                method: 'POST', // Rota unificada para cadastro/atualização
+                headers: getAuthHeaders(), // <-- ADIÇÃO CRÍTICA
+                body: JSON.stringify(produtoData)
+            });
+
+            const data = await response.json();
+
+            if (response.status === 401 || response.status === 403) {
+                alert(`Sessão expirada ou acesso negado: ${data.message}. Redirecionando para login.`);
+                blockModule();
+                return;
+            }
+
+            if (response.ok && data.success) {
+                feedback.textContent = `✅ Sucesso: ${data.message}`;
+                // Reseta o formulário após o sucesso
+                clearForm();
+            } else {
+                feedback.textContent = `❌ Erro ao salvar produto: ${data.message}`;
+            }
+
+        } catch (error) {
+            console.error('Erro de rede ao salvar produto:', error);
+            feedback.textContent = '⚠️ Erro de conexão com o servidor.';
+        }
+    }
+
+
+    // ==========================================================
+    // INICIALIZAÇÃO (AGORA SEGURA)
+    // ==========================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Carrega dados da sessão
+        operadorMatricula = sessionStorage.getItem('operadorMatricula');
+        operadorNome = sessionStorage.getItem('operadorNome');
+        operadorToken = sessionStorage.getItem('operadorToken'); // <-- NOVO: Carrega o Token
+
+        // 1. CRÍTICO: Verifica Autorização (Precisa de Matrícula E Token)
+        if (!operadorMatricula || !operadorToken) {
+            alert("Acesso não autorizado. Por favor, faça o login.");
+            blockModule();
+            return;
+        }
+
+        // 2. Adiciona Listeners de Evento
+        const form = document.getElementById('cadastroForm');
+        form.addEventListener('submit', handleCadastroProduto);
+
+        // Listeners para recalcular o preço em tempo real
+        document.getElementById('custoLiquido').addEventListener('input', calculateVendaPrice);
+        document.getElementById('margemBruta').addEventListener('input', calculateVendaPrice);
+        document.getElementById('clearBtn').addEventListener('click', () => clearForm());
+
+        // Listener para buscar o produto assim que o código de barras for digitado e o campo perder o foco (blur)
+        document.getElementById('codigoBarra').addEventListener('blur', searchProduct);
+
+        // 3. Inicializa o display
+        calculateVendaPrice();
+
+        // Exibe o operador logado no header
+        document.querySelector('h1').textContent += ` - Logado: ${operadorNome}`;
+        document.getElementById('codigoBarra').focus();
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Supermercado - Frente de Caixa (PDV)</title>
+    <style>
+        /* ========================================================== */
+        /* ESTILOS CSS                         */
+        /* ========================================================== */
+        body {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0e7ee;
+            margin: 0;
+            padding: 0;
+        }
+
+        .pdv-container {
+            max-width: 1400px;
+            margin: 20px auto;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Estado de Bloqueio (CRÍTICO: Impede uso sem login) */
+        .pdv-container.locked {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* Header */
+        .pdv-header {
+            background-color: #004d99; /* Azul Escuro */
+            color: white;
+            padding: 15px 30px;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pdv-header h1 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
+        .pdv-header .info {
+            text-align: right;
+            font-size: 0.9em;
+        }
+
+        /* Área de Venda Principal */
+        .pdv-main {
+            display: flex;
+            flex-grow: 1;
+        }
+
+        /* Lado Esquerdo - Lista de Itens */
+        .sale-list-area {
+            flex: 2;
+            padding: 20px 30px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-input-area {
+            margin-bottom: 20px;
+        }
+
+        .product-input-area input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.2em;
+            border: 2px solid #007bff;
+            border-radius: 6px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .list-header {
+            display: grid;
+            grid-template-columns: 1fr 4fr 1.5fr 1.5fr 1fr;
+            font-weight: bold;
+            padding: 10px 0;
+            border-bottom: 2px solid #eee;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .list-items {
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 60vh; /* Limite de altura para scroll */
+        }
+
+        .sale-item {
+            display: grid;
+            grid-template-columns: 1fr 4fr 1.5fr 1.5fr 1fr;
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+            align-items: center;
+            font-size: 1em;
+        }
+
+        .sale-item span, .sale-item button {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sale-item .description {
+            font-weight: 500;
+        }
+
+        .sale-item .remove-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Lado Direito - Totais e Ações */
+        .totals-area {
+            flex: 1;
+            padding: 20px 30px;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .subtotal, .desconto, .total-geral {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 1.2em;
+        }
+
+        .total-geral {
+            border-top: 2px solid #007bff;
+            margin-top: 15px;
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .totals-area label {
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        #descontoInput {
+            width: 80px;
+            text-align: right;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .action-buttons button {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        #btnFinalizar {
+            background-color: #28a745; /* Verde Sucesso */
+            color: white;
+        }
+
+        #btnFinalizar:hover {
+            background-color: #218838;
+        }
+
+        #btnCancelar {
+            background-color: #dc3545; /* Vermelho Perigo */
+            color: white;
+        }
+
+        #btnCancelar:hover {
+            background-color: #c82333;
+        }
+
+        /* Modal para Bloqueio */
+        .auth-modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .auth-modal-content {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .auth-modal-content h2 {
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+
+        .auth-modal-content button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .auth-modal-content button:hover {
+            background-color: #0056b3;
+        }
+
+        .success-message, .error-message {
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="authModal" class="auth-modal active-modal">
+        <div class="auth-modal-content">
+            <h2>CAIXA BLOQUEADO</h2>
+            <p>Pressione F12 ou Clique para Desbloquear</p>
+            <button onclick="window.location.href='index.html'">Voltar ao Login</button>
+        </div>
+    </div>
+
+    <div class="pdv-container locked">
+        <header class="pdv-header">
+            <h1>Frente de Caixa (PDV) - [CAIXA 01]</h1>
+            <div class="info">
+                <p id="currentDateTime"></p>
+                <p id="operadorInfo">Operador(a):</p>
+            </div>
+        </header>
+
+        <main class="pdv-main">
+            <section class="sale-list-area">
+                <div class="product-input-area">
+                    <input type="text" id="produtoInput" placeholder="Código de Barras ou F2 para Pesquisa" autofocus>
+                </div>
+
+                <div class="list-header">
+                    <span>Item</span>
+                    <span>Descrição</span>
+                    <span style="text-align: right;">Qtde</span>
+                    <span style="text-align: right;">Preço (R$)</span>
+                    <span style="text-align: right;">Total (R$)</span>
+                </div>
+
+                <div class="list-items" id="vendaListContainer">
+                    </div>
+
+            </section>
+
+            <section class="totals-area">
+                <div>
+                    <div class="subtotal">
+                        <span>Subtotal:</span>
+                        <span id="subtotalDisplay">R$ 0,00</span>
+                    </div>
+                    <div class="desconto">
+                        <label for="descontoInput">Desconto (%):</label>
+                        <input type="number" id="descontoInput" min="0" max="100" value="0.00">
+                    </div>
+                    <div class="total-geral">
+                        <span>TOTAL GERAL:</span>
+                        <span id="totalGeralDisplay">R$ 0,00</span>
+                    </div>
+                </div>
+
+                <div id="statusMessage" class="success-message">Aguardando código do produto...</div>
+
+                <div class="action-buttons">
+                    <button id="btnFinalizar" onclick="fecharVenda()">F9 - Finalizar Venda</button>
+                    <button id="btnCancelar" onclick="cancelarVenda()">F10 - Cancelar Venda</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+    // Variáveis globais (carregadas da sessão)
+    let operadorMatricula = null;
+    let operadorNome = null;
+    let operadorToken = null; // NOVO: Token JWT
+    let listaVenda = [];
+
+    // ==========================================================
+    // 🔐 FUNÇÃO CRÍTICA: GERA HEADERS DE AUTORIZAÇÃO
+    // ==========================================================
+    function getAuthHeaders() {
+        // Envia o token no formato padrão JWT: Authorization: Bearer <token>
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${operadorToken}`
+        };
+    }
+
+    // ==========================================================
+    // 1. FUNÇÕES DE UTILIDADE E CÁLCULO
+    // ==========================================================
+
+    function formatCurrency(value) {
+        return (value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function calculateTotal() {
+        let subtotal = listaVenda.reduce((acc, item) => acc + (item.preco_venda * item.quantidade), 0);
+        let desconto = parseFloat(document.getElementById('descontoInput').value) || 0;
+        let total = subtotal - desconto;
+        return { subtotal, desconto, total: Math.max(0, total) };
+    }
+
+    function updateTotals() {
+        const { subtotal, desconto, total } = calculateTotal();
+        document.getElementById('subtotalValue').textContent = formatCurrency(subtotal);
+        document.getElementById('descontoValue').textContent = formatCurrency(desconto);
+        document.getElementById('totalValue').textContent = formatCurrency(total);
+    }
+
+    function blockPDV() {
+        sessionStorage.clear();
+        window.location.href = 'index.html'; // Redireciona para o login
+    }
+
+
+    // ==========================================================
+    // 2. FUNÇÕES DE INTERAÇÃO COM O BACKEND (AGORA SEGURAS)
+    // ==========================================================
+
+    async function searchProduct() {
+        const codigoBarra = document.getElementById('produtoInput').value.trim();
+        const feedback = document.getElementById('pdvFeedback');
+
+        if (!codigoBarra) return;
+
+        feedback.textContent = 'Buscando produto...';
+
+        try {
+            const response = await fetch(`/api/erp/produtos/${codigoBarra}`, {
+                method: 'GET',
+                headers: getAuthHeaders() // <-- ADIÇÃO CRÍTICA: Autenticação
+            });
+
+            const data = await response.json();
+
+            // Tratamento de falha de autorização
+            if (response.status === 401 || response.status === 403) {
+                alert(`Sessão expirada ou acesso negado: ${data.message}. Redirecionando para login.`);
+                blockPDV();
+                return;
+            }
+
+            if (response.ok && data.success) {
+                addProductToVenda(data.produto);
+                feedback.textContent = `✅ Produto: ${data.produto.nome}`;
+            } else {
+                feedback.textContent = `❌ Erro: ${data.message || 'Produto não encontrado.'}`;
+            }
+
+        } catch (error) {
+            console.error('Erro de rede ao buscar produto:', error);
+            feedback.textContent = '⚠️ Erro de conexão com o servidor.';
+        }
+
+        document.getElementById('produtoInput').value = '';
+    }
+
+    // Adiciona o produto à lista de venda (lógica local)
+    function addProductToVenda(produto) {
+        const existingItem = listaVenda.find(item => item.codigo_barra === produto.codigo_barra);
+
+        if (existingItem) {
+            existingItem.quantidade += 1;
+        } else {
+            listaVenda.push({
+                codigo_barra: produto.codigo_barra,
+                nome: produto.nome,
+                preco_venda: produto.preco_venda,
+                quantidade: 1,
+            });
+        }
+        renderVendaList();
+        updateTotals();
+    }
+
+    // Remove ou diminui a quantidade de um item (lógica local)
+    function removeItem(codigo_barra) {
+        const index = listaVenda.findIndex(item => item.codigo_barra === codigo_barra);
+        if (index > -1) {
+            if (listaVenda[index].quantidade > 1) {
+                listaVenda[index].quantidade -= 1;
+            } else {
+                listaVenda.splice(index, 1);
+            }
+        }
+        renderVendaList();
+        updateTotals();
+    }
+
+    async function confirmVenda() {
+        if (listaVenda.length === 0) {
+            alert("A lista de venda está vazia.");
+            return;
+        }
+
+        // Simulação de dados de pagamento (Em produção, viriam de um formulário)
+        const dadosPagamento = {
+            metodo: 'Cartão de Crédito',
+            bandeira: 'VISA',
+            valor: calculateTotal().total // Valor total final
+        };
+
+        const vendaData = {
+            itens: listaVenda,
+            valor_total: calculateTotal().total,
+            pagamento: dadosPagamento
+        };
+
+        const feedback = document.getElementById('pdvFeedback');
+        feedback.textContent = 'Processando venda e pagamento... (Aguarde)';
+
+        try {
+            const response = await fetch('/api/erp/vendas/fechar', {
+                method: 'POST',
+                headers: getAuthHeaders(), // <-- ADIÇÃO CRÍTICA: Autenticação
+                body: JSON.stringify(vendaData)
+            });
+
+            const data = await response.json();
+
+            if (response.status === 401 || response.status === 403) {
+                alert(`Sessão expirada ou acesso negado: ${data.message}. Redirecionando para login.`);
+                blockPDV();
+                return;
+            }
+
+            if (response.ok && data.success) {
+                feedback.textContent = `✅ VENDA CONCLUÍDA! ID: ${data.venda_id}. Status NF-e: ${data.nfe_result.status}`;
+                listaVenda = []; // Limpa a lista após o sucesso
+                document.getElementById('descontoInput').value = 0;
+                renderVendaList();
+            } else {
+                feedback.textContent = `❌ FALHA NA VENDA: ${data.message}. Motivo: ${data.details ? data.details.motivo : 'Verifique os logs.'}`;
+            }
+        } catch (error) {
+            console.error('Erro de rede ao fechar venda:', error);
+            feedback.textContent = '⚠️ Erro de conexão com o servidor. Venda não processada.';
+        }
+        updateTotals();
+    }
+
+
+    // ==========================================================
+    // 3. FUNÇÕES DE RENDERIZAÇÃO DA TABELA
+    // ==========================================================
+
+    function renderVendaList() {
+        const tableBody = document.getElementById('vendaTableBody');
+        tableBody.innerHTML = '';
+
+        if (listaVenda.length === 0) {
+            const row = tableBody.insertRow();
+            row.insertCell(0).colSpan = 5;
+            row.cells[0].textContent = 'Pressione ENTER no campo de produto para começar a vender.';
+            row.cells[0].style.textAlign = 'center';
+            return;
+        }
+
+        listaVenda.forEach(item => {
+            const row = tableBody.insertRow();
+            const valorTotalItem = item.preco_venda * item.quantidade;
+
+            row.insertCell(0).textContent = item.codigo_barra;
+            row.insertCell(1).textContent = item.nome;
+            row.insertCell(2).textContent = item.quantidade;
+            row.insertCell(3).textContent = formatCurrency(item.preco_venda);
+            row.insertCell(4).textContent = formatCurrency(valorTotalItem);
+
+            const actionsCell = row.insertCell(5);
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = 'Remover (1x)';
+            removeBtn.className = 'btn-remove';
+            removeBtn.onclick = () => removeItem(item.codigo_barra);
+            actionsCell.appendChild(removeBtn);
+        });
+    }
+
+
+    // ==========================================================
+    // INICIALIZAÇÃO (AGORA SEGURA)
+    // ==========================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Carrega dados da sessão
+        operadorMatricula = sessionStorage.getItem('operadorMatricula');
+        operadorNome = sessionStorage.getItem('operadorNome');
+        operadorToken = sessionStorage.getItem('operadorToken'); // <-- NOVO: Carrega o Token
+
+        // Verifica se há um operador E um Token logado na sessionStorage
+        if (!operadorMatricula || !operadorToken) {
+            alert("Sessão expirada ou acesso não autorizado. Faça o login novamente.");
+            blockPDV(); // Função que limpa e redireciona
+            return;
+        }
+
+        // Se logado, atualiza o header e desbloqueia
+        document.getElementById('operadorInfo').textContent = `Operador(a): ${operadorNome || operadorMatricula}`;
+        document.getElementById('authModal').classList.remove('active-modal');
+        document.querySelector('.pdv-container').classList.remove('locked');
+
+        // Adiciona um listener para a tecla Enter no input principal
+        document.getElementById('produtoInput').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                searchProduct();
+            }
+        });
+
+        // Adiciona listener para F12 (Bloqueio Rápido)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F12') {
+                e.preventDefault();
+                blockPDV();
+            }
+        });
+
+        // Listener para o desconto e para o botão de Fechar Venda
+        document.getElementById('descontoInput').addEventListener('change', updateTotals);
+        document.getElementById('fecharVendaBtn').addEventListener('click', confirmVenda); // Novo listener
+
+        // Inicialização do PDV
+        renderVendaList();
+        updateTotals();
+        document.getElementById('produtoInput').focus(); // Foca no input principal
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP - Módulo de Administração de Usuários</title>
+    <style>
+        /* [ESTILOS CSS OMITIDOS PARA CONCISÃO, SEM ALTERAÇÃO] */
+/* ========================================================== */
+        /* ESTILOS CSS MODERNIZADOS - ADMINISTRAÇÃO DE USUÁRIOS       */
+        /* ========================================================== */
+        :root {
+            --primary-blue: #007bff;
+            --secondary-bg: #f8f9fa;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+            --warning-yellow: #ffc107;
+            --text-color: #343a40;
+            --bg-color: #e9ecef;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            border-bottom: 3px solid var(--primary-blue);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        .form-section, .list-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: var(--secondary-bg);
+        }
+
+        h2 {
+            color: var(--text-color);
+            margin-top: 0;
+            border-left: 5px solid var(--primary-blue);
+            padding-left: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--text-color);
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"],
+        .form-group select,
+        .form-group input[type="date"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .form-actions {
+            grid-column: 1 / -1; /* Ocupa todas as colunas */
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .form-actions button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #submitBtn {
+            background-color: var(--success-green);
+            color: white;
+        }
+
+        #submitBtn:hover {
+            background-color: #1e7e34;
+        }
+
+        #clearBtn {
+            background-color: #f8f9fa;
+            color: var(--text-color);
+            border: 1px solid #ccc;
+        }
+
+        #clearBtn:hover {
+            background-color: #e2e6ea;
+        }
+
+        #feedbackMessage {
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Tabela de Usuários */
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .user-table th, .user-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-table th {
+            background-color: var(--primary-blue);
+            color: white;
+            font-weight: normal;
+        }
+
+        .user-table tr:hover {
+            background-color: #f1f8ff;
+        }
+
+        .action-cell button {
+            background-color: var(--danger-red);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .acesso-admin {
+            color: var(--danger-red);
+            font-weight: bold;
+        }
+        .acesso-operador {
+            color: var(--success-green);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Administração de Usuários (RETA)</h1>
+
+        <section class="form-section">
+            <h2>Cadastro / Edição de Usuário</h2>
+            <form id="userForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="matricula">Matrícula (ID):</label>
+                        <input type="text" id="matricula" name="matricula" required placeholder="Ex: ADMIN01 ou OP002">
+                    </div>
+                    <div class="form-group">
+                        <label for="nome">Nome Completo:</label>
+                        <input type="text" id="nome" name="nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="senha">Senha:</label>
+                        <input type="password" id="senha" name="senha" required placeholder="Mínimo 6 caracteres">
+                    </div>
+                    <div class="form-group">
+                        <label for="acesso">Nível de Acesso:</label>
+                        <select id="acesso" name="acesso">
+                            <option value="Operador">Operador de Caixa</option>
+                            <option value="Admin">Administrador (RETA)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dataCadastro">Data de Cadastro:</label>
+                        <input type="date" id="dataCadastro" name="dataCadastro" readonly>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="clearBtn" onclick="clearForm()">Limpar / Novo</button>
+                    <button type="submit" id="submitBtn">Salvar Usuário</button>
+                </div>
+                <p id="feedbackMessage"></p>
+            </form>
+        </section>
+
+        <section class="list-section">
+            <h2>Usuários Cadastrados</h2>
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Matrícula</th>
+                        <th>Nome</th>
+                        <th>Acesso</th>
+                        <th>Cadastro</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="userListBody">
+                    </tbody>
+            </table>
+        </section>
+    </div>
+
+<script>
+    // Configuração de Permissão (CRÍTICO)
+    const REQUIRED_PERMISSION = 'Admin';
+
+    // Variáveis globais (carregadas da sessão)
+    let operadorMatricula = null;
+    let operadorNome = null;
+    let operadorPermissao = null;
+    let operadorToken = null; // NOVO: Token JWT
+
+    // ==========================================================
+    // 🔐 FUNÇÃO CRÍTICA: GERA HEADERS DE AUTORIZAÇÃO
+    // ==========================================================
+    function getAuthHeaders() {
+        // Envia o token no formato padrão JWT: Authorization: Bearer <token>
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${operadorToken}`
+        };
+    }
+
+    // ==========================================================
+    // 1. FUNÇÕES DE FORMATAÇÃO E UTILIDADE
+    // ==========================================================
+
+    function getFormattedDate() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function clearForm() {
+        document.getElementById('userForm').reset();
+        document.getElementById('dataCadastro').value = getFormattedDate();
+        document.getElementById('matricula').readOnly = false;
+        document.getElementById('formTitle').textContent = 'Cadastrar Novo Usuário';
+        document.getElementById('feedbackMessage').textContent = '';
+    }
+
+    // ==========================================================
+    // 2. FUNÇÕES DE INTERAÇÃO COM O BACKEND (AGORA SEGURAS)
+    // ==========================================================
+
+    async function fetchUsers() {
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        feedbackMessage.textContent = 'Carregando lista de usuários...';
+
+        try {
+            const response = await fetch('/api/erp/admin/usuarios', {
+                method: 'GET',
+                headers: getAuthHeaders() // <-- ADIÇÃO CRÍTICA
+            });
+
+            const data = await response.json();
+
+            // Tratamento de falha de autorização (Token inválido/expirado)
+            if (response.status === 401 || response.status === 403) {
+                alert(`Sessão expirada ou acesso negado: ${data.message}`);
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (response.ok && data.success) {
+                renderUserTable(data.usuarios);
+                feedbackMessage.textContent = `✅ Lista de usuários carregada: ${data.usuarios.length} registros.`;
+            } else {
+                feedbackMessage.textContent = `❌ Falha ao carregar usuários: ${data.message}`;
+                renderUserTable([]);
+            }
+        } catch (error) {
+            console.error('Erro de rede ao carregar usuários:', error);
+            feedbackMessage.textContent = '⚠️ Erro de conexão com o servidor.';
+            renderUserTable([]);
+        }
+    }
+
+    async function handleUserForm(event) {
+        event.preventDefault();
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        feedbackMessage.textContent = 'Processando...';
+
+        const matricula = document.getElementById('matricula').value.trim();
+        const nome = document.getElementById('nome').value.trim();
+        const senha = document.getElementById('senha').value;
+        const acesso = document.getElementById('acesso').value;
+        const dataCadastro = document.getElementById('dataCadastro').value;
+        const ativo = document.getElementById('ativo').checked;
+
+        const userData = {
+            matricula,
+            nome,
+            acesso,
+            data_cadastro: dataCadastro,
+            ativo
+        };
+        // A senha só é enviada se estiver sendo criada ou alterada
+        if (senha) {
+            userData.senha = senha;
+        }
+
+        try {
+            const response = await fetch('/api/erp/admin/usuarios', {
+                method: 'POST',
+                headers: getAuthHeaders(), // <-- ADIÇÃO CRÍTICA
+                body: JSON.stringify(userData)
+            });
+
+            const data = await response.json();
+
+            if (response.status === 401 || response.status === 403) {
+                alert(`Sessão expirada ou acesso negado: ${data.message}`);
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (response.ok && data.success) {
+                feedbackMessage.textContent = `✅ Sucesso: ${data.message}`;
+                clearForm();
+                fetchUsers(); // Recarrega a lista
+            } else {
+                feedbackMessage.textContent = `❌ Erro: ${data.message}`;
+            }
+
+        } catch (error) {
+            console.error('Erro de rede ao salvar usuário:', error);
+            feedbackMessage.textContent = '⚠️ Erro de conexão com o servidor.';
+        }
+    }
+
+    async function deleteUser(matricula) {
+        if (matricula === operadorMatricula) {
+            alert("Você não pode excluir seu próprio usuário.");
+            return;
+        }
+
+        if (confirm(`Tem certeza que deseja EXCLUIR o usuário ${matricula}? Esta ação é irreversível!`)) {
+            const feedbackMessage = document.getElementById('feedbackMessage');
+            feedbackMessage.textContent = `Excluindo ${matricula}...`;
+
+            try {
+                const response = await fetch(`/api/erp/admin/usuarios/${matricula}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders() // <-- ADIÇÃO CRÍTICA
+                });
+
+                const data = await response.json();
+
+                if (response.status === 401 || response.status === 403) {
+                    alert(`Sessão expirada ou acesso negado: ${data.message}`);
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                if (response.ok && data.success) {
+                    feedbackMessage.textContent = `✅ Sucesso: ${data.message}`;
+                    fetchUsers(); // Recarrega a lista
+                } else {
+                    feedbackMessage.textContent = `❌ Erro ao excluir: ${data.message}`;
+                }
+            } catch (error) {
+                console.error('Erro de rede ao excluir usuário:', error);
+                feedbackMessage.textContent = '⚠️ Erro de conexão com o servidor.';
+            }
+        }
+    }
+
+    // Função para editar usuário (apenas preenche o formulário)
+    function editUser(user) {
+        document.getElementById('matricula').value = user.matricula;
+        document.getElementById('matricula').readOnly = true; // Não permite alterar a matrícula ao editar
+        document.getElementById('nome').value = user.nome;
+        document.getElementById('acesso').value = user.acesso;
+        document.getElementById('dataCadastro').value = user.data_cadastro;
+        document.getElementById('ativo').checked = user.ativo;
+        document.getElementById('senha').value = ''; // Sempre limpa a senha para evitar envio acidental
+        document.getElementById('formTitle').textContent = `Editar Usuário: ${user.matricula}`;
+
+        // Rola para o topo para mostrar o formulário
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ==========================================================
+    // 3. FUNÇÃO DE RENDERIZAÇÃO DA TABELA
+    // ==========================================================
+
+    function renderUserTable(usuarios) {
+        const tableBody = document.getElementById('userTableBody');
+        tableBody.innerHTML = '';
+
+        if (usuarios.length === 0) {
+            const row = tableBody.insertRow();
+            row.insertCell(0).colSpan = 6;
+            row.cells[0].textContent = 'Nenhum usuário encontrado.';
+            row.cells[0].style.textAlign = 'center';
+            return;
+        }
+
+        usuarios.forEach(user => {
+            const row = tableBody.insertRow();
+
+            const accessClass = user.acesso === 'Admin' ? 'acesso-admin' : 'acesso-operador';
+            const statusText = user.ativo ? 'Ativo' : 'Inativo';
+            const statusClass = user.ativo ? 'status-ativo' : 'status-inativo';
+
+            row.insertCell(0).textContent = user.matricula;
+            row.insertCell(1).textContent = user.nome;
+            row.insertCell(2).innerHTML = `<span class="${accessClass}">${user.acesso}</span>`;
+            row.insertCell(3).textContent = user.data_cadastro;
+            row.insertCell(4).innerHTML = `<span class="${statusClass}">${statusText}</span>`;
+
+            const actionsCell = row.insertCell(5);
+            actionsCell.className = 'action-buttons';
+
+            // Botão Editar
+            const editBtn = document.createElement('button');
+            editBtn.textContent = 'Editar';
+            editBtn.className = 'btn btn-edit';
+            editBtn.onclick = () => editUser(user);
+
+            // Botão Excluir
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Excluir';
+            deleteBtn.className = 'btn btn-delete';
+            deleteBtn.onclick = () => deleteUser(user.matricula);
+
+            actionsCell.appendChild(editBtn);
+            actionsCell.appendChild(deleteBtn);
+        });
+    }
+
+
+    // ==========================================================
+    // INICIALIZAÇÃO E VERIFICAÇÃO DE PERMISSÃO (ATUALIZADA)
+    // ==========================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+        operadorMatricula = sessionStorage.getItem('operadorMatricula');
+        operadorNome = sessionStorage.getItem('operadorNome');
+        operadorPermissao = sessionStorage.getItem('operadorPermissao');
+        operadorToken = sessionStorage.getItem('operadorToken'); // <-- NOVO: Carrega o Token
+
+        // 1. CRÍTICO: Verifica Autorização (Deve ter Matrícula, Token E ser Admin)
+        if (!operadorMatricula || !operadorToken || operadorPermissao !== REQUIRED_PERMISSION) {
+            alert(`Acesso restrito. Você deve ser um ${REQUIRED_PERMISSION.toUpperCase()} para acessar este módulo.`);
+            sessionStorage.clear();
+            window.location.href = 'index.html'; // Redireciona
+            return;
+        }
+
+        // 2. Prepara o formulário e a tela
+        document.getElementById('dataCadastro').value = getFormattedDate();
+        document.querySelector('h1').textContent += ` - Logado: ${operadorNome}`;
+
+        // 3. Adiciona Listeners de Evento
+        document.getElementById('userForm').addEventListener('submit', handleUserForm);
+        document.getElementById('clearBtn').addEventListener('click', clearForm);
+
+        // 4. Carrega a lista de usuários
+        fetchUsers();
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Supermercado - Dashboard Principal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* [ESTILOS CSS OMITIDOS PARA CONCISÃO, SEM ALTERAÇÃO] */
+/* --- Login Modal Styles --- */
+.auth-modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none; /* Inicialmente escondido */
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s;
+}
+
+.auth-modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 400px;
+}
+
+/* --- Dashboard Styles --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background-color: #f4f7f6;
+    color: #343a40;
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    transition: opacity 0.5s;
+}
+
+.dashboard-container.locked {
+    pointer-events: none;
+    opacity: 0.2;
+}
+
+.dashboard-container.unlocked {
+    opacity: 1;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    color: #007bff;
+    margin: 0;
+    font-size: 1.8em;
+}
+
+#infoDataText {
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+}
+
+.menu-item {
+    background-color: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+}
+
+.menu-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.menu-item i {
+    font-size: 3em;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.menu-item h2 {
+    font-size: 1.4em;
+    margin: 10px 0 0;
+    color: #343a40;
+}
+
+.menu-item p {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.lock-message {
+    text-align: center;
+    color: #dc3545;
+    font-weight: bold;
+    margin-top: 50px;
+}
+
+/* Logout Button */
+.logout-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.logout-btn:hover {
+    background-color: #c82333;
+}
+
+/* Estilos de Formulário */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.modal-content button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.2s;
+}
+
+.modal-content button:hover {
+    background-color: #0056b3;
+}
+
+#feedbackMessage {
+    text-align: center;
+    margin-top: 15px;
+    font-weight: bold;
+    color: #dc3545;
+}
+
+.lock-icon {
+    font-size: 3em;
+    color: #dc3545;
+    margin-bottom: 15px;
+}
+    </style>
+</head>
+<body>
+
+    <div id="authModal" class="auth-modal active">
+        <div class="modal-content">
+            <div class="lock-icon"><i class="fas fa-lock"></i></div>
+            <h2>Acesso Restrito</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="matricula">Matrícula:</label>
+                    <input type="text" id="matricula" name="matricula" required>
+                </div>
+                <div class="form-group">
+                    <label for="senha">Senha:</label>
+                    <input type="password" id="senha" name="senha" required>
+                </div>
+                <button type="submit">Entrar no Sistema</button>
+            </form>
+            <p id="feedbackMessage"></p>
+        </div>
+    </div>
+
+    <div class="dashboard-container locked">
+        <header>
+            <h1><i class="fas fa-chart-line"></i> ERP - Dashboard Principal</h1>
+            <div id="infoDataText">Aguardando login...</div>
+            <button class="logout-btn" onclick="handleLogout()">Sair</button>
+        </header>
+
+        <section class="menu-grid">
+            <a href="pdv.html" class="menu-item">
+                <i class="fas fa-cash-register"></i>
+                <h2>Frente de Caixa (PDV)</h2>
+                <p>Processar vendas e finalizar transações.</p>
+            </a>
+            <a href="produto.html" class="menu-item">
+                <i class="fas fa-box"></i>
+                <h2>Cadastro de Produtos</h2>
+                <p>Gerenciar inventário, custos e preços.</p>
+            </a>
+            <a href="recebimento.html" class="menu-item">
+                <i class="fas fa-truck-loading"></i>
+                <h2>Recebimento de Mercadorias</h2>
+                <p>Dar entrada em Notas Fiscais e atualizar estoque.</p>
+            </a>
+            <a href="reta.html" class="menu-item menu-admin" id="retaLink" style="display: none;">
+                <i class="fas fa-users-cog"></i>
+                <h2>Admin. de Usuários (RETA)</h2>
+                <p>Cadastrar, editar e gerenciar permissões.</p>
+            </a>
+        </section>
+
+        <p class="lock-message">Sistema bloqueado. Por favor, faça o login.</p>
+    </div>
+
+<script>
+    // Variáveis globais para armazenar dados do operador logado
+    let operadorMatricula = null;
+    let operadorNome = null;
+    let operadorPermissao = null;
+    let operadorToken = null; // NOVO: Armazenar o Token JWT
+
+    // ==========================================================
+    // 🔐 FUNÇÃO CRÍTICA DE LOGIN (Agora usa o Backend JWT)
+    // ==========================================================
+    async function handleLogin(event) {
+        event.preventDefault();
+        const feedbackMessage = document.getElementById('loginFeedback');
+        const matricula = document.getElementById('matriculaInput').value;
+        const senha = document.getElementById('senhaInput').value;
+
+        feedbackMessage.textContent = 'Autenticando...';
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ matricula, senha })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // 1. OBTÉM OS DADOS DO JWT RETORNADO
+                operadorMatricula = data.matricula;
+                operadorNome = data.nome;
+                operadorPermissao = data.permissao;
+                operadorToken = data.token; // CRÍTICO: Armazena o JWT
+
+                // 2. ARMAZENAMENTO SEGURO na sessão do navegador
+                sessionStorage.setItem('operadorMatricula', operadorMatricula);
+                sessionStorage.setItem('operadorNome', operadorNome);
+                sessionStorage.setItem('operadorPermissao', operadorPermissao);
+                sessionStorage.setItem('operadorToken', operadorToken); // CRÍTICO: Salva o Token
+
+                feedbackMessage.textContent = data.message;
+
+                // 3. Desbloqueia e Atualiza a UI
+                const dashboard = document.querySelector('.dashboard-container');
+                const authModal = document.getElementById('authModal');
+
+                dashboard.classList.remove('locked');
+                dashboard.classList.add('unlocked');
+                authModal.classList.remove('active');
+                document.getElementById('infoDataText').innerHTML = `Bem-vindo(a), **${operadorNome.toUpperCase()}**!`;
+
+                console.log("Login bem-sucedido. Token JWT armazenado.");
+
+            } else {
+                // Falha no login (matrícula/senha inválida ou erro do servidor)
+                feedbackMessage.textContent = `❌ Falha no Login: ${data.message || 'Erro desconhecido.'}`;
+            }
+
+        } catch (error) {
+            console.error('Erro de rede ao tentar fazer login:', error);
+            feedbackMessage.textContent = '⚠️ Erro de conexão com o servidor. Tente novamente mais tarde.';
+        }
+    }
+
+    // Função para simular o LOGOUT (limpar sessão)
+    function handleLogout() {
+        sessionStorage.clear(); // Limpa todos os dados da sessão
+        // Redireciona para recarregar a página e reexibir o modal de login
+        window.location.reload();
+    }
+
+    // Função para atualização contínua de data e hora
+    function updateDateTime() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        document.getElementById('currentDateTime').textContent = now.toLocaleDateString('pt-BR', options);
+    }
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', () => {
+        updateDateTime();
+        setInterval(updateDateTime, 60000);
+
+        const dashboard = document.querySelector('.dashboard-container');
+        const authModal = document.getElementById('authModal');
+        const loginForm = document.getElementById('loginForm');
+        const logoutBtn = document.getElementById('logoutBtn'); // Garanta que este botão exista no seu HTML
+
+        // 1. Listener do Formulário
+        loginForm.addEventListener('submit', handleLogin);
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', handleLogout);
+        }
+
+        // 2. Verifica se já está logado na sessão (útil ao voltar de outras páginas)
+        operadorMatricula = sessionStorage.getItem('operadorMatricula');
+        operadorNome = sessionStorage.getItem('operadorNome');
+        operadorToken = sessionStorage.getItem('operadorToken'); // CRÍTICO: Carrega o Token
+
+        if (operadorMatricula && operadorToken) {
+             // Se houver usuário e token na sessão, desbloqueia direto
+            dashboard.classList.remove('locked');
+            dashboard.classList.add('unlocked');
+            authModal.classList.remove('active');
+            document.getElementById('infoDataText').innerHTML = `Bem-vindo(a), **${operadorNome.toUpperCase()}**!`;
+
+        } else {
+            // Senão, bloqueia e exibe o modal
+            sessionStorage.clear(); // Garante que a sessão é limpa se um dado crucial estiver faltando
+            dashboard.classList.add('locked');
+            authModal.classList.add('active');
+        }
+    });
+</script>
+</body>
+</html>

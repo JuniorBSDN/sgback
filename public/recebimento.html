@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Supermercado - Recebimento de Mercadorias</title>
+    <style>
+        /* [ESTILOS CSS OMITIDOS PARA CONCISÃO, SEM ALTERAÇÃO] */
+/* Estilos Gerais para Recebimento */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 20px;
+}
+
+.recebimento-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.xml-upload-area {
+    background-color: #e9f7ff;
+    padding: 20px;
+    border: 1px dashed #007bff;
+    border-radius: 6px;
+    margin-bottom: 30px;
+}
+
+.xml-upload-area label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+#fileInput {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#notaFiscalInfo {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+#notaFiscalInfo h2 {
+    color: #343a40;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.nf-summary p {
+    margin: 5px 0;
+}
+
+.nf-summary p strong {
+    color: #007bff;
+}
+
+.nf-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.nf-items-table th, .nf-items-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+    font-size: 0.9em;
+}
+
+.nf-items-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+.action-buttons button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#confirmBtn {
+    background-color: #28a745;
+    color: white;
+}
+
+#confirmBtn:hover {
+    background-color: #1e7e34;
+}
+
+#cancelBtn {
+    background-color: #dc3545;
+    color: white;
+}
+
+#cancelBtn:hover {
+    background-color: #c82333;
+}
+
+#feedbackMessage {
+    margin-top: 20px;
+    text-align: center;
+    font-weight: bold;
+    color: #007bff;
+}
+    </style>
+</head>
+<body>
+
+    <div class="recebimento-container">
+        <h1>Recebimento de Mercadorias</h1>
+
+        <div class="xml-upload-area">
+            <label for="fileInput">1. Carregar Arquivo XML da Nota Fiscal (NF-e)</label>
+            <input type="file" id="fileInput" accept=".xml">
+        </div>
+
+        <div id="notaFiscalInfo" style="display: none;">
+            <h2>Detalhes da NF-e</h2>
+
+            <div class="nf-summary">
+                <p><strong>Número da NF:</strong> <span id="nfNumero"></span></p>
+                <p><strong>Emitente (Fornecedor):</strong> <span id="nfEmitente"></span></p>
+                <p><strong>Valor Total:</strong> <span id="nfValorTotal"></span></p>
+            </div>
+
+            <h3>Itens Recebidos:</h3>
+            <table class="nf-items-table">
+                <thead>
+                    <tr>
+                        <th>Cód. Produto</th>
+                        <th>Descrição</th>
+                        <th>Qtd</th>
+                        <th>Valor Unitário (Custo)</th>
+                    </tr>
+                </thead>
+                <tbody id="nfItemsBody">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="action-buttons" style="display: none;">
+            <button id="cancelBtn" onclick="cancelRecebimento()">Cancelar Recebimento</button>
+            <button id="confirmBtn" onclick="confirmRecebimento()">Confirmar Entrada no Estoque</button>
+        </div>
+
+        <p id="feedbackMessage"></p>
+    </div>
+
+<script>
+    // Variáveis globais (carregadas da sessão)
+    let operadorMatricula = null;
+    let operadorNome = null;
+    let operadorToken = null; // NOVO: Token JWT
+    let notaFiscalData = null; // Armazena temporariamente os dados da NF-e validada
+
+    // ==========================================================
+    // 🔐 FUNÇÃO CRÍTICA: GERA HEADERS DE AUTORIZAÇÃO
+    // ==========================================================
+    function getAuthHeaders() {
+        // Envia o token no formato padrão JWT: Authorization: Bearer <token>
+        return {
+            'Authorization': `Bearer ${operadorToken}`
+        };
+    }
+
+    function blockModule() {
+        sessionStorage.clear();
+        window.location.href = 'index.html'; // Limpa a sessão e redireciona para o login
+    }
+
+
+    // ==========================================================
+    // 1. FUNÇÕES DE PROCESSAMENTO E CONFERÊNCIA
+    // ==========================================================
+
+    // Função para tratar a leitura do arquivo XML (apenas lê, não envia)
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        const feedback = document.getElementById('feedbackMessage');
+        feedback.textContent = '';
+
+        if (!file) {
+            cancelRecebimento();
+            return;
+        }
+
+        if (file.name.toLowerCase().endsWith('.xml')) {
+            feedback.textContent = `Carregando arquivo ${file.name}...`;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const xmlContent = e.target.result;
+                await sendXmlToValidation(xmlContent); // Chama a validação no backend
+            };
+            reader.readAsText(file);
+        } else {
+            feedback.textContent = '❌ Por favor, selecione um arquivo XML válido.';
+            document.getElementById('fileInput').value = '';
+            cancelRecebimento();
+        }
+    }
+
+    // Função CRÍTICA: Envia o XML para o Backend para validação
+    async function sendXmlToValidation(xmlContent) {
+        const feedback = document.getElementById('feedbackMessage');
+        feedback.textContent = 'Enviando NF-e para validação no backend...';
+
+        try {
+            const response = await fetch('/api/erp/recebimento/validar_nfe', {
+                method: 'POST',
+                // Apenas Content-Type: application/json e Authorization são necessários
+                headers: {
+                    ...getAuthHeaders(), // <-- ADIÇÃO CRÍTICA
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ xml_content: xmlContent })
+            });
+
+            const data = await response.json();
+
+            // Tratamento de falha de autorização
+            if (response.status === 401 || response.status === 403) {
+                alert(`Sessão expirada ou acesso negado: ${data.message}. Redirecionando para login.`);
+                blockModule();
+                return;
+            }
+
+            if (response.ok && data.success) {
+                notaFiscalData = data.nota_fiscal;
+                renderNotaFiscalInfo(notaFiscalData);
+                feedback.textContent = `✅ NF-e ${notaFiscalData.nf_numero} do Fornecedor ${notaFiscalData.fornecedor_nome} validada. Revise e Confirme.`;
+
+                document.getElementById('notaFiscalInfo').style.display = 'block';
+                document.querySelector('.action-buttons').style.display = 'flex';
+                document.querySelector('.xml-upload-area').style.display = 'none';
+
+            } else {
+                // Erro na validação da NFe (dados incorretos, XML mal formatado, etc.)
+                feedback.textContent = `❌ Erro de Validação: ${data.message}`;
+                cancelRecebimento();
+            }
+
+        } catch (error) {
+            console.error('Erro de rede ao validar NF-e:', error);
+            feedback.textContent = '⚠️ Erro de conexão com o servidor ao tentar validar NF-e.';
+            cancelRecebimento();
+        }
+    }
+
+    // Função CRÍTICA: Envia confirmação para o Backend (Atualiza Estoque/Custo/Financeiro)
+    async function confirmRecebimento() {
+        if (!notaFiscalData) {
+            alert("Nenhuma NF-e carregada para confirmar.");
+            return;
+        }
+
+        const feedback = document.getElementById('feedbackMessage');
+        feedback.textContent = `Confirmando recebimento da NF ${notaFiscalData.nf_numero}... (Aguarde)`;
+
+        try {
+            const response = await fetch('/api/erp/recebimento/confirmar', {
+                method: 'POST',
+                headers: {
+                    ...getAuthHeaders(), // <-- ADIÇÃO CRÍTICA
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nf_numero: notaFiscalData.nf_numero,
+                    fornecedor_cnpj: notaFiscalData.fornecedor_cnpj,
+                    produtos: notaFiscalData.produtos // Dados de produtos, custo e quantidade
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.status === 401 || response.status === 403) {
+                alert(`Sessão expirada ou acesso negado: ${data.message}. Redirecionando para login.`);
+                blockModule();
+                return;
+            }
+
+            if (response.ok && data.success) {
+                feedback.textContent = `✅ SUCESSO! ${data.message}`;
+                // Limpeza após sucesso
+                cancelRecebimento(false);
+                document.querySelector('.xml-upload-area').style.display = 'block';
+            } else {
+                feedback.textContent = `❌ FALHA ao confirmar recebimento: ${data.message}`;
+            }
+
+        } catch (error) {
+            console.error('Erro de rede ao confirmar recebimento:', error);
+            feedback.textContent = '⚠️ Erro de conexão com o servidor. Recebimento não processado.';
+        }
+    }
+
+    // Limpa a tela e as variáveis locais
+    function cancelRecebimento(resetFileInput = true) {
+        notaFiscalData = null;
+        document.getElementById('notaFiscalInfo').style.display = 'none';
+        document.querySelector('.action-buttons').style.display = 'none';
+        document.getElementById('nfHeader').textContent = 'Nota Fiscal: N/A';
+        document.getElementById('produtosTableBody').innerHTML = '';
+        document.getElementById('nfFornecedor').textContent = '';
+        document.getElementById('nfTotal').textContent = '';
+
+        if (resetFileInput) {
+             document.getElementById('fileInput').value = ''; // Limpa o input file
+             document.getElementById('feedbackMessage').textContent = `Pronto para conferir NFs.`;
+        }
+    }
+
+    // ==========================================================
+    // 2. FUNÇÕES DE RENDERIZAÇÃO
+    // ==========================================================
+
+    function renderNotaFiscalInfo(nf) {
+        document.getElementById('nfHeader').textContent = `Nota Fiscal: ${nf.nf_numero} (Série ${nf.nf_serie})`;
+        document.getElementById('nfFornecedor').textContent = `Fornecedor: ${nf.fornecedor_nome} (CNPJ: ${nf.fornecedor_cnpj})`;
+        document.getElementById('nfTotal').textContent = `Valor Total da NF: R$ ${nf.valor_total.toFixed(2).replace('.', ',')}`;
+
+        const tableBody = document.getElementById('produtosTableBody');
+        tableBody.innerHTML = '';
+
+        nf.produtos.forEach((produto, index) => {
+            const row = tableBody.insertRow();
+
+            // Simulação de conferência (Em um sistema real, haveria inputs para conferência)
+            const statusClass = produto.status_conferencia === 'OK' ? 'status-ok' : 'status-alerta';
+
+            row.insertCell(0).textContent = produto.codigo_barra_fornecedor;
+            row.insertCell(1).textContent = produto.nome;
+            row.insertCell(2).textContent = produto.quantidade_recebida;
+            row.insertCell(3).textContent = `R$ ${produto.custo_unitario.toFixed(2).replace('.', ',')}`;
+            row.insertCell(4).textContent = `R$ ${(produto.quantidade_recebida * produto.custo_unitario).toFixed(2).replace('.', ',')}`;
+            row.insertCell(5).innerHTML = `<span class="${statusClass}">${produto.status_conferencia}</span>`;
+        });
+    }
+
+    // ==========================================================
+    // INICIALIZAÇÃO (AGORA SEGURA)
+    // ==========================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Carrega dados da sessão
+        operadorMatricula = sessionStorage.getItem('operadorMatricula');
+        operadorNome = sessionStorage.getItem('operadorNome');
+        operadorToken = sessionStorage.getItem('operadorToken'); // <-- NOVO: Carrega o Token
+
+        // 1. CRÍTICO: Verifica Autorização (Precisa de Matrícula E Token)
+        if (!operadorMatricula || !operadorToken) {
+            alert("Acesso não autorizado. Por favor, faça o login.");
+            blockModule();
+            return;
+        }
+
+        // 2. Adiciona Listeners de Evento
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        document.getElementById('confirmBtn').addEventListener('click', confirmRecebimento);
+        document.getElementById('cancelBtn').addEventListener('click', cancelRecebimento);
+
+        // 3. Inicializa a tela
+        document.getElementById('notaFiscalInfo').style.display = 'none';
+        document.querySelector('.action-buttons').style.display = 'none';
+        document.getElementById('feedbackMessage').textContent = `Bem-vindo(a) ${operadorNome}. Pronto para conferir NFs.`;
+        document.querySelector('h1').textContent += ` - Logado: ${operadorNome}`;
+
+    });
+</script>
+</body>
+</html>
