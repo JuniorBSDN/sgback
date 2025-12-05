@@ -1,16 +1,6 @@
-# Framework Web
 Flask
-
-# Banco de Dados (Firebase/Firestore)
+python-dotenv
 firebase-admin
-
-# Autenticação e Segurança
-PyJWT               # Para gerar e validar JSON Web Tokens (JWT)
-python-dotenv       # Para carregar variáveis de ambiente do arquivo .env (em desenvolvimento local)
-Werkzeug            # Utilitário de segurança (inclui helpers para senhas, embora o Flask já o utilize)
-
-# Integrações e Comunicação HTTP
-requests            # Usado para simular chamadas a Gateways de Pagamento/Emissor de NF-e
-
-# Utilitário de Servidor (pode ser necessário dependendo da configuração da Vercel)
-gunicorn            # Servidor WSGI de produção (recomendado para Vercel)
+werkzeug
+requests
+PyJWT # Recomenda-se para geração/validação de tokens no futuro
