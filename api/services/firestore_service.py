@@ -71,7 +71,7 @@ def log_auditoria(matricula, modulo, acao, detalhe=""):
 
 
 # ==========================================================
-# FUNÇÕES DE PRODUTO (Para uso em erp_routes.py)
+# FUNÇÕES DE PRODUTO
 # ==========================================================
 
 def save_or_update_product(product_data):
@@ -119,15 +119,15 @@ def find_product_by_barcode(barcode):
         return None
 
 
-# FIM do arquivo firestore_service.py
-# ... (restante do código, incluindo as funções de Produto)
-
 # ==========================================================
-# FUNÇÕES DE USUÁRIO (Para uso em auth_routes.py)
+# 🔑 FUNÇÃO DE USUÁRIO (CRÍTICO para AuthRoutes)
 # ==========================================================
 
 def find_user_by_matricula(matricula):
-    """Busca um usuário pela matrícula na coleção 'usuarios'."""
+    """
+    Busca um usuário pela matrícula na coleção 'usuarios'.
+    Usada para carregar o HASH da senha para verificação de login.
+    """
     db_instance = get_db()
     if not db_instance:
         return None
