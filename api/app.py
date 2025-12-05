@@ -50,19 +50,17 @@ def before_request():
 register_blueprints(app)
 
 
-# 5. ROTAS ESTÁTICAS PARA SERVIR ARQUIVOS HTML/CSS/JS (CRÍTICO para o Vercel)
+# 5. ROTAS ESTÁTICAS PARA SERVIR ARQUIVOS HTML/CSS/JS (CRÍTICO)
 @app.route('/')
 def index():
-    """Serve o arquivo principal (index.html)."""
+    """Serve o arquivo principal (index.html) na URL raiz."""
+    # O ponto ('.') indica que o arquivo está na pasta raiz
     return send_from_directory('.', 'index.html')
-
 
 @app.route('/<path:filename>')
 def serve_static(filename):
-    """Serve os demais arquivos estáticos (pdv.html, produto.html, etc.)."""
-
+    """Serve os demais arquivos estáticos (pdv.html, produto.html, styles.css, etc.)."""
     # Garante que ele procure no diretório raiz do projeto.
-    # Esta rota é genérica e deve ser a última a ser verificada.
     return send_from_directory('.', filename)
 
 
