@@ -4,6 +4,8 @@ from flask import Flask, send_from_directory, g, request, jsonify
 from services.firestore_service import initialize_firestore  # Importa a função de inicialização
 from routes import register_blueprints  # Importa a função de registro de Blueprints
 from config import Config  # Importa a configuração (para SECRET_KEY)
+# NOVO: Importações para validação JWT
+import jwt
 import os
 
 # --- 1. INICIALIZAÇÃO DO FLASK ---
@@ -25,48 +27,52 @@ else:
 @app.before_request
 def before_request():
     """
-    Popula o objeto 'g' (global/request-local) com dados do usuário que o
-    frontend envia nos headers, simulando a extração de um JWT.
-
-    Isso é o que permite que o @auth_required funcione e que o log_auditoria
-    saiba quem está fazendo a ação (g.user_matricula).
+    Popula o objeto 'g' (global/request-local) com dados do usuário,
+    AGORA validando o Token JWT enviado no cabeçalho 'Authorization: Bearer <token>'.
     """
 
-    # Tentativa de obter dados dos headers (o frontend deve enviá-los após o login)
-    matricula = request.headers.get('X-User-Matricula')
-    permissao = request.headers.get('X-User-Permissao')
-    nome = request.headers.get('X-User-Nome', matricula)  # Nome opcional
+    # 1. Obtém o cabeçalho de Autorização
+    auth_header = request.headers.get('Authorization')
+    token = None
 
-    # Popula o objeto 'g'
-    g.user_matricula = matricula
-    g.user_permissao = permissao
-    g.user_nome = nome
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1]
 
-    # Opcional: Logar requisições para debug
-    # print(f"Requisição recebida. Usuário: {matricula}, Permissão: {permissao}, Rota: {request.path}")
+    # Popula g com valores padrão (não autenticado)
+    g.user_matricula = None
+    g.user_permissao = None
+    g.user_nome = None
+
+    if token:
+        try:
+            # Tenta decodificar e validar o token usando a chave secreta
+            payload = jwt.decode(token, Config.JWT_SECRET_KEY, algorithms=['HS256'])
+
+            # Se a decodificação for bem-sucedida, extrai os dados do payload e popula 'g'
+            g.user_matricula = payload.get('sub') # 'sub' (Subject) é a matrícula
+            g.user_permissao = payload.get('permissao')
+            # O nome do usuário não está no token, mas a matrícula é suficiente
+            
+        except jwt.ExpiredSignatureError:
+            print("AVISO: Token JWT Expirado.")
+        except jwt.InvalidTokenError:
+            print("ERRO: Token JWT Inválido (Assinatura, formato ou chave errada).")
+        except Exception as e:
+            print(f"ERRO: Falha crítica na validação do JWT: {e}")
 
 
 # 4. REGISTRO DOS BLUEPRINTS
 register_blueprints(app)
 
 
-# 5. ROTAS ESTÁTICAS PARA SERVIR ARQUIVOS HTML/CSS/JS (CRÍTICO)
+# 5. ROTAS ESTÁTICAS PARA SERVIR ARQUIVOS HTML/CSS/JS (CRÍTICO para o Vercel)
 @app.route('/')
 def index():
-    """Serve o arquivo principal (index.html) na URL raiz."""
-    # O ponto ('.') indica que o arquivo está na pasta raiz
+    """Serve o arquivo principal (index.html)."""
     return send_from_directory('.', 'index.html')
+
 
 @app.route('/<path:filename>')
 def serve_static(filename):
-    """Serve os demais arquivos estáticos (pdv.html, produto.html, styles.css, etc.)."""
-    # Garante que ele procure no diretório raiz do projeto.
+    """Serve os demais arquivos estáticos (pdv.html, produto.html, etc.)."""
     return send_from_directory('.', filename)
-
-
-# 6. Variável 'application' usada pelo servidor WSGI (Vercel/Gunicorn)
-application = app
-
-if __name__ == '__main__':
-    # Roda em ambiente local de desenvolvimento
-    app.run(debug=True, port=os.environ.get('PORT', 8000))
