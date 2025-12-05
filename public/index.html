@@ -6,197 +6,196 @@
     <title>ERP Supermercado - Dashboard Principal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* [ESTILOS CSS OMITIDOS PARA CONCISÃO, SEM ALTERAÇÃO] */
-/* --- Login Modal Styles --- */
-.auth-modal {
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: none; /* Inicialmente escondido */
-    justify-content: center;
-    align-items: center;
-    transition: opacity 0.3s;
-}
+        /* --- Login Modal Styles --- */
+        .auth-modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none; /* Inicialmente escondido */
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.3s;
+        }
 
-.auth-modal.active {
-    display: flex;
-}
+        .auth-modal.active {
+            display: flex;
+        }
 
-.modal-content {
-    background-color: #fff;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    width: 90%;
-    max-width: 400px;
-}
+        .modal-content {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 400px;
+        }
 
-/* --- Dashboard Styles --- */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    background-color: #f4f7f6;
-    color: #343a40;
-}
+        /* --- Dashboard Styles --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #343a40;
+        }
 
-.dashboard-container {
-    max-width: 1200px;
-    margin: 40px auto;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    transition: opacity 0.5s;
-}
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: opacity 0.5s;
+        }
 
-.dashboard-container.locked {
-    pointer-events: none;
-    opacity: 0.2;
-}
+        .dashboard-container.locked {
+            pointer-events: none;
+            opacity: 0.2;
+        }
 
-.dashboard-container.unlocked {
-    opacity: 1;
-}
+        .dashboard-container.unlocked {
+            opacity: 1;
+        }
 
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 20px;
-    border-bottom: 2px solid #e9ecef;
-    margin-bottom: 30px;
-}
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 30px;
+        }
 
-header h1 {
-    color: #007bff;
-    margin: 0;
-    font-size: 1.8em;
-}
+        header h1 {
+            color: #007bff;
+            margin: 0;
+            font-size: 1.8em;
+        }
 
-#infoDataText {
-    font-size: 1.1em;
-    font-weight: 500;
-}
+        #infoDataText {
+            font-size: 1.1em;
+            font-weight: 500;
+        }
 
-.menu-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 30px;
-}
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
 
-.menu-item {
-    background-color: #f8f9fa;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
-    text-align: center;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 150px;
-}
+        .menu-item {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: center;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+        }
 
-.menu-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
 
-.menu-item i {
-    font-size: 3em;
-    color: #007bff;
-    margin-bottom: 10px;
-}
+        .menu-item i {
+            font-size: 3em;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
 
-.menu-item h2 {
-    font-size: 1.4em;
-    margin: 10px 0 0;
-    color: #343a40;
-}
+        .menu-item h2 {
+            font-size: 1.4em;
+            margin: 10px 0 0;
+            color: #343a40;
+        }
 
-.menu-item p {
-    color: #6c757d;
-    font-size: 0.9em;
-}
+        .menu-item p {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
 
-.lock-message {
-    text-align: center;
-    color: #dc3545;
-    font-weight: bold;
-    margin-top: 50px;
-}
+        .lock-message {
+            text-align: center;
+            color: #dc3545;
+            font-weight: bold;
+            margin-top: 50px;
+        }
 
-/* Logout Button */
-.logout-btn {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
+        /* Logout Button */
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
 
-.logout-btn:hover {
-    background-color: #c82333;
-}
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
 
-/* Estilos de Formulário */
-.form-group {
-    margin-bottom: 20px;
-}
+        /* Estilos de Formulário */
+        .form-group {
+            margin-bottom: 20px;
+        }
 
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-}
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
 
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    box-sizing: border-box;
-}
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
 
-.modal-content button {
-    width: 100%;
-    padding: 12px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1.1em;
-    transition: background-color 0.2s;
-}
+        .modal-content button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.2s;
+        }
 
-.modal-content button:hover {
-    background-color: #0056b3;
-}
+        .modal-content button:hover {
+            background-color: #0056b3;
+        }
 
-#feedbackMessage {
-    text-align: center;
-    margin-top: 15px;
-    font-weight: bold;
-    color: #dc3545;
-}
+        #feedbackMessage {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #dc3545;
+        }
 
-.lock-icon {
-    font-size: 3em;
-    color: #dc3545;
-    margin-bottom: 15px;
-}
+        .lock-icon {
+            font-size: 3em;
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -248,6 +247,11 @@ header h1 {
                 <h2>Admin. de Usuários (RETA)</h2>
                 <p>Cadastrar, editar e gerenciar permissões.</p>
             </a>
+            <a href="dashboard.html" class="menu-item menu-admin">
+                <i class="fas fa-tachometer-alt"></i>
+                <h2>Dashboard Gerencial</h2>
+                <p>Visualizar KPIs e logs de auditoria.</p>
+            </a>
         </section>
 
         <p class="lock-message">Sistema bloqueado. Por favor, faça o login.</p>
@@ -258,16 +262,18 @@ header h1 {
     let operadorMatricula = null;
     let operadorNome = null;
     let operadorPermissao = null;
-    let operadorToken = null; // NOVO: Armazenar o Token JWT
+    let operadorToken = null; // Armazenar o Token JWT
 
     // ==========================================================
-    // 🔐 FUNÇÃO CRÍTICA DE LOGIN (Agora usa o Backend JWT)
+    // 🔐 FUNÇÃO CRÍTICA DE LOGIN (CORRIGIDA)
     // ==========================================================
     async function handleLogin(event) {
         event.preventDefault();
-        const feedbackMessage = document.getElementById('loginFeedback');
-        const matricula = document.getElementById('matriculaInput').value;
-        const senha = document.getElementById('senhaInput').value;
+        
+        // ❌ CORREÇÃO CRÍTICA APLICADA: IDs Corretos
+        const feedbackMessage = document.getElementById('feedbackMessage'); 
+        const matricula = document.getElementById('matricula').value;      
+        const senha = document.getElementById('senha').value;              
 
         feedbackMessage.textContent = 'Autenticando...';
 
@@ -283,11 +289,15 @@ header h1 {
             const data = await response.json();
 
             if (response.ok && data.success) {
-                // 1. OBTÉM OS DADOS DO JWT RETORNADO
-                operadorMatricula = data.matricula;
-                operadorNome = data.nome;
-                operadorPermissao = data.permissao;
-                operadorToken = data.token; // CRÍTICO: Armazena o JWT
+                // 1. OBTÉM OS DADOS DO BACKEND (os nomes foram ajustados para corresponder ao auth_routes.py)
+                operadorMatricula = data.user_matricula;
+                operadorNome = data.user_nome;
+                operadorPermissao = data.user_permissao;
+                // NOTA: O auth_routes.py não está retornando 'token' no snippet. 
+                // Assumindo que seu backend foi atualizado para retornar 'token' aqui, 
+                // ou ajustando para o que está disponível. Se o token não for retornado, a segurança JWT falhará.
+                // VOU MANTER 'data.token' como esperado:
+                operadorToken = data.token; 
 
                 // 2. ARMAZENAMENTO SEGURO na sessão do navegador
                 sessionStorage.setItem('operadorMatricula', operadorMatricula);
@@ -300,11 +310,17 @@ header h1 {
                 // 3. Desbloqueia e Atualiza a UI
                 const dashboard = document.querySelector('.dashboard-container');
                 const authModal = document.getElementById('authModal');
+                const retaLink = document.getElementById('retaLink'); // Captura o link
 
                 dashboard.classList.remove('locked');
                 dashboard.classList.add('unlocked');
                 authModal.classList.remove('active');
                 document.getElementById('infoDataText').innerHTML = `Bem-vindo(a), **${operadorNome.toUpperCase()}**!`;
+                
+                // ✅ Lógica de Permissão Adicionada
+                if (operadorPermissao && operadorPermissao.toLowerCase() === 'admin') {
+                    retaLink.style.display = 'flex'; // Exibe o link RETA (Admin)
+                }
 
                 console.log("Login bem-sucedido. Token JWT armazenado.");
 
@@ -322,44 +338,53 @@ header h1 {
     // Função para simular o LOGOUT (limpar sessão)
     function handleLogout() {
         sessionStorage.clear(); // Limpa todos os dados da sessão
-        // Redireciona para recarregar a página e reexibir o modal de login
-        window.location.reload();
+        window.location.reload(); // Redireciona para recarregar a página e reexibir o modal de login
     }
 
-    // Função para atualização contínua de data e hora
+    // Função para atualização contínua de data e hora (Nota: O ID 'currentDateTime' não existe no HTML, mas mantive a função)
     function updateDateTime() {
         const now = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        document.getElementById('currentDateTime').textContent = now.toLocaleDateString('pt-BR', options);
+        const dataElement = document.getElementById('currentDateTime');
+        if (dataElement) {
+            dataElement.textContent = now.toLocaleDateString('pt-BR', options);
+        }
     }
 
     // Inicialização
     document.addEventListener('DOMContentLoaded', () => {
         updateDateTime();
-        setInterval(updateDateTime, 60000);
+        // NOTA: O ID 'currentDateTime' não existe no seu HTML original, o setInterval não funcionará
+        // setInterval(updateDateTime, 60000); 
 
         const dashboard = document.querySelector('.dashboard-container');
         const authModal = document.getElementById('authModal');
         const loginForm = document.getElementById('loginForm');
-        const logoutBtn = document.getElementById('logoutBtn'); // Garanta que este botão exista no seu HTML
+        // O botão de logout tem o listener inline (onclick="handleLogout()"), então não precisamos deste listener
+        // const logoutBtn = document.getElementById('logoutBtn'); 
 
         // 1. Listener do Formulário
         loginForm.addEventListener('submit', handleLogin);
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', handleLogout);
-        }
 
         // 2. Verifica se já está logado na sessão (útil ao voltar de outras páginas)
         operadorMatricula = sessionStorage.getItem('operadorMatricula');
         operadorNome = sessionStorage.getItem('operadorNome');
-        operadorToken = sessionStorage.getItem('operadorToken'); // CRÍTICO: Carrega o Token
+        operadorToken = sessionStorage.getItem('operadorToken');
+        operadorPermissao = sessionStorage.getItem('operadorPermissao'); // ✅ Carrega a Permissão
+
+        const retaLink = document.getElementById('retaLink'); 
 
         if (operadorMatricula && operadorToken) {
-             // Se houver usuário e token na sessão, desbloqueia direto
+            // Se houver usuário e token na sessão, desbloqueia direto
             dashboard.classList.remove('locked');
             dashboard.classList.add('unlocked');
             authModal.classList.remove('active');
             document.getElementById('infoDataText').innerHTML = `Bem-vindo(a), **${operadorNome.toUpperCase()}**!`;
+            
+            // ✅ Lógica de Permissão ao carregar a página
+            if (operadorPermissao && operadorPermissao.toLowerCase() === 'admin') {
+                retaLink.style.display = 'flex'; // Exibe o link RETA (Admin)
+            }
 
         } else {
             // Senão, bloqueia e exibe o modal
