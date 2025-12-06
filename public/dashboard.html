@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Supermercado - Dashboard Gerencial</title>
+    <title>ERP Supermercado - Dashboard Principal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* ========================================================== */
-        /* ESTILOS CSS MODERNIZADOS - DASHBOARD GERENCIAL             */
+        /* ESTILOS CSS MODERNIZADOS - DASHBOARD PRINCIPAL             */
         /* ========================================================== */
         :root {
-            --primary-color: #007bff; /* Azul primário */
-            --secondary-bg: #f8f9fa; /* Fundo secundário claro */
-            --success-green: #28a745; /* Vendas, Positivo */
-            --warning-yellow: #ffc107; /* Atenção, Margem */
-            --danger-red: #dc3545; /* Alerta, Ponto de Pedido */
-            --info-cyan: #17a2b8; /* Valor de Estoque */
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
             --text-color: #343a40;
             --bg-color: #f4f7f6;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             margin: 0;
             padding: 20px;
@@ -28,395 +28,437 @@
 
         .dashboard-container {
             max-width: 1200px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.5s;
         }
 
-        h1 {
-            color: var(--primary-color);
-            border-bottom: 4px solid var(--primary-color);
+        .dashboard-container.locked {
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .dashboard-container.unlocked {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Header e Título */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary-color);
             padding-bottom: 15px;
-            margin-bottom: 40px;
-            text-align: center;
-            font-size: 2em;
-        }
-
-        h2 {
-            color: var(--text-color);
-            border-left: 6px solid var(--success-green);
-            padding-left: 15px;
-            margin-bottom: 25px;
-            margin-top: 40px;
-            font-size: 1.5em;
-        }
-
-        /* Cards de KPI */
-        .kpi-cards {
-            /* Uso de Grid para layout responsivo */
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
             margin-bottom: 30px;
         }
 
-        .kpi-card {
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            background-color: var(--secondary-bg);
-            border-left: 5px solid; /* Linha de cor para indicar o tipo */
-            transition: all 0.3s ease;
+        header h1 {
+            color: var(--primary-color);
+            font-size: 2.2em;
+            margin: 0;
         }
 
-        .kpi-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
-        .kpi-card h3 {
-            margin-top: 0;
-            color: #555;
-            font-size: 1.1em;
-            font-weight: 600;
+        #infoDataText {
+            font-weight: bold;
+            color: var(--text-color);
         }
 
-        .kpi-value, .kpi-value-alert {
-            font-size: 2.5em;
-            font-weight: 700;
-            margin: 5px 0 10px 0;
-            line-height: 1.1;
-        }
-
-        .kpi-value {
-            color: var(--success-green); /* Padrão positivo */
-        }
-
-        .kpi-value-alert {
-            color: var(--danger-red); /* Padrão de alerta/atenção */
-        }
-
-        small {
-            display: block;
-            color: #6c757d;
-            margin-top: 10px;
-            font-size: 0.9em;
-        }
-
-        /* Cores específicas para a borda do cartão */
-        .kpi-card.sales { border-left-color: var(--primary-color); }
-        .kpi-card.margin { border-left-color: var(--warning-yellow); }
-        .kpi-card.tickets { border-left-color: #20c997; /* Verde água */ }
-        .kpi-card.stock-alert { border-left-color: var(--danger-red); }
-        .kpi-card.stock-value { border-left-color: var(--info-cyan); }
-        .kpi-card.validity-alert { border-left-color: #fd7e14; /* Laranja */ }
-
-        /* Tabela de Auditoria */
-        .auditoria-group {
-            margin-top: 40px;
-        }
-
-        #auditoriaTable {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        #logoutBtn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
             border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.2s;
         }
 
-        #auditoriaTable th, #auditoriaTable td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #dee2e6;
+        #logoutBtn:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
         }
 
-        #auditoriaTable thead th {
+        /* Grid de Módulos */
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .module-card {
+            background: var(--secondary-color);
+            color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 150px;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .module-card h2 {
+            font-size: 1.5em;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        .module-card p {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        .module-card i {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        /* Cores específicas dos módulos */
+        .module-card:nth-child(1) { background-color: #007bff; } /* PDV */
+        .module-card:nth-child(2) { background-color: #28a745; } /* Produtos */
+        .module-card:nth-child(3) { background-color: #ffc107; } /* Recebimento */
+        .module-card:nth-child(4) { background-color: #17a2b8; } /* Dashboard */
+        .module-card:nth-child(5) { background-color: #6f42c1; } /* RETAGUARDA/ADM */
+        
+        /* --- Login Modal Styles --- */
+        .auth-modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none; /* Inicialmente escondido */
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.3s;
+        }
+
+        .auth-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            color: var(--primary-color);
+            margin-bottom: 25px;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        .login-form button {
             background-color: var(--primary-color);
             color: white;
-            font-weight: 700;
-            text-transform: uppercase;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: background-color 0.3s;
         }
 
-        #auditoriaTable tbody tr:nth-child(even) {
-            background-color: var(--secondary-bg);
+        .login-form button:hover {
+            background-color: #0056b3;
         }
 
-        #auditoriaTable tbody tr:hover {
-            background-color: #e2f0ff;
+        /* --- Global Message Modal Styles (NOVO) --- */
+        #globalMessageModal {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
+            width: 300px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+            transform: translateX(120%); /* Escondido fora da tela */
+            opacity: 0;
+            display: block; /* Mantenha como block para transição */
         }
 
-        .audit-note {
-            font-style: italic;
-            color: #6c757d;
-            margin-top: 15px;
-            display: block;
-            font-size: 0.9em;
+        #globalMessageModal.active {
+            transform: translateX(0);
+            opacity: 1;
         }
 
-        .acesso-admin, .acesso-operador {
-            padding: 5px 10px;
-            border-radius: 4px;
+        #globalMessageTitle {
             font-weight: bold;
-            font-size: 0.9em;
-            text-transform: uppercase;
+            margin-bottom: 5px;
+            font-size: 1.1em;
         }
 
-        .acesso-admin {
-            background-color: #f8d7da; /* Fundo vermelho claro */
-            color: var(--danger-red);
-        }
-        .acesso-operador {
-            background-color: #d1ecf1; /* Fundo azul claro */
-            color: var(--primary-color);
+        /* Media Queries para Responsividade */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 20px;
+            }
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .user-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
+            #globalMessageModal {
+                width: 90%;
+                left: 5%;
+                right: 5%;
+                top: 10px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="dashboard-container">
-        <h1>Dashboard de Performance e Auditoria <small>(Dados em Tempo Real)</small></h1>
-
-        <div class="kpi-group">
-            <h2>Performance Comercial e Financeira</h2>
-            <div class="kpi-cards">
-                <div class="kpi-card sales">
-                    <h3>Venda Bruta do Dia</h3>
-                    <p class="kpi-value">R$ <span id="kpiVendaBruta">12.850,00</span></p>
-                    <small>Meta: R$ 15.000,00</small>
-                </div>
-                <div class="kpi-card margin">
-                    <h3>Margem Bruta Média</h3>
-                    <p class="kpi-value" style="color: var(--warning-yellow);"><span id="kpiMargem">28,5%</span></p>
-                    <small>Monitora a eficácia da precificação.</small>
-                </div>
-                <div class="kpi-card tickets">
-                    <h3>Ticket Médio</h3>
-                    <p class="kpi-value" style="color: #20c997;"><span id="kpiTicketMedio">45,90</span></p>
-                    <small>Calculado sobre 280 vendas.</small>
-                </div>
-            </div>
+    <!-- MODAL DE MENSAGENS GLOBAIS (Substitui alert()) -->
+    <div id="globalMessageModal">
+        <div id="globalMessageTitle">Título da Mensagem</div>
+        <div id="globalMessageContent">Conteúdo da mensagem.</div>
+    </div>
+    
+    <!-- MODAL DE AUTENTICAÇÃO -->
+    <div id="authModal" class="auth-modal">
+        <div class="modal-content">
+            <h2><i class="fas fa-lock"></i> ERP - Login</h2>
+            <form id="loginForm" class="login-form">
+                <input type="text" id="matricula" placeholder="Matrícula do Operador" required>
+                <input type="password" id="senha" placeholder="Senha" required>
+                <button type="submit">Entrar</button>
+            </form>
         </div>
-
-        <div class="kpi-group">
-            <h2>Controle de Estoque e Compras</h2>
-            <div class="kpi-cards">
-                <div class="kpi-card stock-alert">
-                    <h3>Itens no Ponto de Pedido</h3>
-                    <p class="kpi-value-alert"><span id="kpiPontoPedido">18</span></p>
-                    <small>Ações Cruciais: Quantidade que precisa ser comprada.</small>
-                </div>
-                <div class="kpi-card stock-value">
-                    <h3>Valor Total do Estoque</h3>
-                    <p class="kpi-value" style="color: var(--info-cyan);">R$ <span id="kpiValorEstoque">345.000,00</span></p>
-                    <small>Valor de Custo dos produtos.</small>
-                </div>
-                <div class="kpi-card validity-alert">
-                    <h3>Vencimentos (Próximos 7 dias)</h3>
-                    <p class="kpi-value-alert" style="color: #fd7e14;"><span id="kpiVencimentos">5</span></p>
-                    <small>Alerta de produtos perecíveis próximos ao vencimento.</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="auditoria-group">
-            <h2>Relatório de Tempo Logado (Auditoria de Operadores)</h2>
-            <table id="auditoriaTable">
-                <thead>
-                    <tr>
-                        <th>Usuário</th>
-                        <th>Nível de Acesso</th>
-                        <th>Tempo Total Logado (Dia)</th>
-                        <th>Última Ação Crítica</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-            </table>
-            <small class="audit-note">Base para gestão de horas e monitoramento de segurança.</small>
-        </div>
-
     </div>
 
-    <script>
-    // Variáveis globais (carregadas da sessão)
-    let operadorMatricula = null;
-    let operadorNome = null;
-    let operadorToken = null; // NOVO: Token JWT
+    <!-- DASHBOARD PRINCIPAL -->
+    <div class="dashboard-container">
+        <header>
+            <h1>Sistema ERP Supermercado</h1>
+            <div class="user-info">
+                <span id="infoDataText">Aguardando login...</span>
+                <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
+            </div>
+        </header>
+
+        <div class="module-grid">
+            <a href="pdv.html" class="module-card">
+                <i class="fas fa-cash-register"></i>
+                <h2>Ponto de Venda (PDV)</h2>
+                <p>Realizar vendas, emitir cupom fiscal e fechar caixa.</p>
+            </a>
+            <a href="produto.html" class="module-card">
+                <i class="fas fa-box-open"></i>
+                <h2>Cadastro de Produtos</h2>
+                <p>Gerenciar inventário, preços de venda e custos.</p>
+            </a>
+            <a href="recebimento.html" class="module-card">
+                <i class="fas fa-truck-loading"></i>
+                <h2>Recebimento de Mercadorias</h2>
+                <p>Lançar Notas Fiscais, conferir itens e atualizar estoque.</p>
+            </a>
+            <a href="dashboard.html" class="module-card">
+                <i class="fas fa-chart-line"></i>
+                <h2>Dashboard Gerencial</h2>
+                <p>Visualizar KPIs, auditoria de logs e relatórios.</p>
+            </a>
+            <!-- Rota de Administração (Geralmente restrita a Admin) -->
+            <a href="reta.html" class="module-card">
+                <i class="fas fa-users-cog"></i>
+                <h2>Retaguarda (Usuários)</h2>
+                <p>Gerenciamento de acessos e permissões do sistema.</p>
+            </a>
+        </div>
+    </div>
+
+<script>
+    // Variáveis globais para os dados do operador logado
+    let operadorMatricula = '';
+    let operadorNome = '';
+    let operadorPermissao = '';
+    let operadorToken = '';
 
     // ==========================================================
-    // 🔐 FUNÇÃO CRÍTICA: GERA HEADERS DE AUTORIZAÇÃO
+    // UTILITÁRIOS: HEADERS DE SEGURANÇA E MENSAGENS
     // ==========================================================
+    
+    // Função para obter os Headers de Autenticação para todas as chamadas de API
     function getAuthHeaders() {
-        // Envia o token no formato padrão JWT: Authorization: Bearer <token>
         return {
-            'Authorization': `Bearer ${operadorToken}`
+            'Content-Type': 'application/json',
+            // CRÍTICO: Envia os dados da sessão nos headers
+            'X-User-Matricula': sessionStorage.getItem('operadorMatricula') || '',
+            'X-User-Permissao': sessionStorage.getItem('operadorPermissao') || '',
+            'X-User-Nome': sessionStorage.getItem('operadorNome') || '',
+            'X-User-Token': sessionStorage.getItem('operadorToken') || '' // Token é opcional no momento, mas bom para futuras verificações
         };
     }
 
-    function blockModule() {
-        sessionStorage.clear();
-        window.location.href = 'index.html'; // Limpa a sessão e redireciona para o login
+    // Função para exibir mensagens customizadas (substitui alert())
+    function showMessage(title, message, isError = false) {
+        const modal = document.getElementById('globalMessageModal');
+        const content = document.getElementById('globalMessageContent');
+        const titleElem = document.getElementById('globalMessageTitle');
+        
+        // Configura o conteúdo e o estilo
+        titleElem.textContent = title;
+        content.textContent = message;
+        
+        modal.style.backgroundColor = isError ? 'rgba(220, 53, 69, 0.9)' : 'rgba(0, 123, 255, 0.9)'; // Vermelho para erro, Azul para informação
+        
+        // Exibe o modal
+        modal.classList.add('active');
+        
+        // Esconde após 4 segundos
+        setTimeout(() => {
+            modal.classList.remove('active');
+        }, 4000);
     }
 
 
     // ==========================================================
-    // 1. FUNÇÕES DE UTILIDADE E FORMATAÇÃO
+    // LÓGICA DE AUTENTICAÇÃO
     // ==========================================================
 
-    function formatCurrency(value) {
-        return (value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    }
+    async function handleLogin(e) {
+        e.preventDefault();
 
-    function formatTime(seconds) {
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = Math.floor(seconds % 60);
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    }
+        const matricula = document.getElementById('matricula').value.trim();
+        const senha = document.getElementById('senha').value.trim();
 
-    // ==========================================================
-    // 2. FUNÇÕES DE INTERAÇÃO COM O BACKEND (AGORA SEGURAS)
-    // ==========================================================
-
-    async function fetchKPIs() {
-        const feedback = document.getElementById('dashboardFeedback');
-        feedback.textContent = 'Carregando KPIs...';
-
-        try {
-            const response = await fetch('/api/erp/dashboard/kpis', {
-                method: 'GET',
-                headers: getAuthHeaders() // <-- ADIÇÃO CRÍTICA
-            });
-
-            const data = await response.json();
-
-            // Tratamento de falha de autorização
-            if (response.status === 401 || response.status === 403) {
-                alert(`Sessão expirada ou acesso negado: ${data.message}. Redirecionando para login.`);
-                blockModule();
-                return;
-            }
-
-            if (response.ok && data.success) {
-                const kpis = data.kpis;
-                document.getElementById('kpiVendaBruta').textContent = formatCurrency(kpis.venda_bruta_dia);
-                document.getElementById('kpiMargemMedia').textContent = `${kpis.margem_media.toFixed(2)}%`;
-                document.getElementById('kpiValorEstoque').textContent = formatCurrency(kpis.valor_total_estoque);
-                document.getElementById('kpiPontoPedido').textContent = kpis.produtos_ponto_pedido;
-
-                // Aplica cores de status
-                document.getElementById('kpiMargemMedia').parentNode.className = `kpi-card ${kpis.margem_media < 25 ? 'warning' : 'success'}`;
-                document.getElementById('kpiPontoPedido').parentNode.className = `kpi-card ${kpis.produtos_ponto_pedido > 5 ? 'danger' : 'info'}`;
-
-                feedback.textContent = '✅ KPIs carregados com sucesso.';
-            } else {
-                feedback.textContent = `❌ Erro ao carregar KPIs: ${data.message}`;
-            }
-        } catch (error) {
-            console.error('Erro de rede ao buscar KPIs:', error);
-            feedback.textContent = '⚠️ Erro de conexão com o servidor.';
-        }
-    }
-
-
-    async function fetchAuditoriaLogs() {
-        const feedback = document.getElementById('dashboardFeedback');
-        feedback.textContent = 'Carregando Logs de Auditoria...';
-
-        try {
-            const response = await fetch('/api/erp/dashboard/auditoria', {
-                method: 'GET',
-                headers: getAuthHeaders() // <-- ADIÇÃO CRÍTICA
-            });
-
-            const data = await response.json();
-
-            // Tratamento de falha de autorização
-            if (response.status === 401 || response.status === 403) {
-                alert(`Sessão expirada ou acesso negado: ${data.message}. Redirecionando para login.`);
-                blockModule();
-                return;
-            }
-
-            if (response.ok && data.success) {
-                renderAuditoriaTable(data.logs);
-                feedback.textContent = '✅ Logs de auditoria carregados com sucesso.';
-            } else {
-                feedback.textContent = `❌ Erro ao carregar Logs: ${data.message}`;
-            }
-
-        } catch (error) {
-            console.error('Erro de rede ao buscar logs de auditoria:', error);
-            feedback.textContent = '⚠️ Erro de conexão com o servidor.';
-        }
-    }
-
-    // ==========================================================
-    // 3. FUNÇÕES DE RENDERIZAÇÃO
-    // ==========================================================
-
-    function renderAuditoriaTable(logs) {
-        const tableBody = document.getElementById('auditoriaTableBody');
-        tableBody.innerHTML = '';
-
-        if (!logs || logs.length === 0) {
-            const row = tableBody.insertRow();
-            row.insertCell(0).colSpan = 4;
-            row.cells[0].textContent = 'Nenhum log de auditoria encontrado.';
-            row.cells[0].style.textAlign = 'center';
+        if (!matricula || !senha) {
+            showMessage("Erro de Login", "Preencha a matrícula e a senha.", true);
             return;
         }
 
-        logs.forEach(log => {
-            const row = tableBody.insertRow();
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matricula, senha })
+            });
 
-            // Adiciona a classe de alerta para logs críticos (simulação)
-            let actionClass = '';
-            if (log.acao.includes('Erro') || log.acao.includes('Negado')) {
-                actionClass = 'log-danger';
-            } else if (log.acao.includes('Fechamento') || log.acao.includes('Admin')) {
-                 actionClass = 'log-warning';
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                // Login bem-sucedido: Salva dados essenciais na sessão
+                sessionStorage.setItem('operadorMatricula', result.user_matricula);
+                sessionStorage.setItem('operadorNome', result.user_nome);
+                sessionStorage.setItem('operadorPermissao', result.user_permissao);
+                sessionStorage.setItem('operadorToken', 'Simulado-Token-Auth'); // TOKEN SIMULADO (CRÍTICO)
+
+                operadorMatricula = result.user_matricula;
+                operadorNome = result.user_nome;
+                operadorToken = 'Simulado-Token-Auth';
+                
+                // Atualiza a interface
+                const dashboard = document.querySelector('.dashboard-container');
+                const authModal = document.getElementById('authModal');
+                
+                dashboard.classList.remove('locked');
+                dashboard.classList.add('unlocked');
+                authModal.classList.remove('active');
+                document.getElementById('infoDataText').innerHTML = `Bem-vindo(a), **${operadorNome.toUpperCase()}**!`;
+                
+                showMessage("Sucesso", "Login realizado com sucesso!");
+
+            } else {
+                // Falha no login (401 - Unauthorized)
+                showMessage("Falha de Login", result.message || "Matrícula ou senha inválida.", true);
             }
+        } catch (error) {
+            console.error('Erro na requisição de login:', error);
+            showMessage("Erro de Conexão", "Não foi possível conectar ao servidor. Tente novamente.", true);
+        }
+    }
 
-            row.insertCell(0).textContent = new Date(log.timestamp).toLocaleTimeString('pt-BR');
-            row.insertCell(1).textContent = log.matricula;
-            row.insertCell(2).textContent = log.modulo;
-            row.insertCell(3).innerHTML = `<span class="${actionClass}">${log.acao}</span>`;
-            row.insertCell(4).textContent = log.detalhe;
-        });
+    function handleLogout() {
+        sessionStorage.clear();
+        window.location.reload(); // Recarrega a página, que acionará a lógica de bloqueio
     }
 
 
     // ==========================================================
-    // INICIALIZAÇÃO (AGORA SEGURA)
+    // INICIALIZAÇÃO E VERIFICAÇÃO DE SESSÃO
     // ==========================================================
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Carrega dados da sessão
-        operadorMatricula = sessionStorage.getItem('operadorMatricula');
-        operadorNome = sessionStorage.getItem('operadorNome');
-        operadorToken = sessionStorage.getItem('operadorToken'); // <-- NOVO: Carrega o Token
+        const dashboard = document.querySelector('.dashboard-container');
+        const authModal = document.getElementById('authModal');
+        const loginForm = document.getElementById('loginForm');
+        const logoutBtn = document.getElementById('logoutBtn');
 
-        // 1. CRÍTICO: Verifica Autorização (Precisa de Matrícula E Token)
-        if (!operadorMatricula || !operadorToken) {
-            alert("Acesso não autorizado. Por favor, faça o login.");
-            blockModule();
-            return;
+        // 1. Listener do Formulário e Logout
+        loginForm.addEventListener('submit', handleLogin);
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', handleLogout);
         }
 
-        // 2. Inicializa a tela com dados autênticos
-        document.querySelector('h1').textContent += ` - Logado: ${operadorNome}`;
+        // 2. Verifica se já está logado na sessão (útil ao voltar de outras páginas)
+        operadorMatricula = sessionStorage.getItem('operadorMatricula');
+        operadorNome = sessionStorage.getItem('operadorNome');
+        operadorToken = sessionStorage.getItem('operadorToken'); // CRÍTICO: Carrega o Token
 
-        // Chama as funções de busca de dados protegidas
-        fetchKPIs();
-        fetchAuditoriaLogs();
+        if (operadorMatricula && operadorToken) {
+             // Se houver usuário e token na sessão, desbloqueia direto
+            dashboard.classList.remove('locked');
+            dashboard.classList.add('unlocked');
+            authModal.classList.remove('active');
+            document.getElementById('infoDataText').innerHTML = `Bem-vindo(a), **${operadorNome.toUpperCase()}**!`;
 
-        // Configura a atualização automática (a cada 30 segundos)
-        setInterval(fetchKPIs, 30000);
-        setInterval(fetchAuditoriaLogs, 30000);
+        } else {
+            // Senão, bloqueia e exibe o modal
+            sessionStorage.clear(); // Garante que a sessão é limpa se um dado crucial estiver faltando
+            dashboard.classList.add('locked');
+            authModal.classList.add('active');
+            
+            // Foca no input da matrícula para começar o login
+            document.getElementById('matricula').focus();
+        }
     });
 </script>
 </body>
