@@ -4,18 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ERP Supermercado - Frente de Caixa (PDV)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* ========================================================== */
-        /* ESTILOS CSS                         */
+        /* ESTILOS CSS - FRENTE DE CAIXA (PDV)                        */
         /* ========================================================== */
+        :root {
+            --primary-color: #007bff; /* Azul Primário */
+            --secondary-color: #0056b3; /* Azul Secundário */
+            --success-color: #28a745; /* Verde Sucesso */
+            --danger-color: #dc3545; /* Vermelho Erro */
+            --warning-color: #ffc107; /* Amarelo Aviso */
+            --background-color: #e0e7ee;
+            --main-font: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --pdv-total-bg: #1c2738; /* Fundo Escuro para Total */
+            --pdv-total-text: #ffffff;
+        }
+
         body {
-            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e0e7ee;
+            font-family: var(--main-font);
+            background-color: var(--background-color);
             margin: 0;
             padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
         .pdv-container {
+            width: 95%;
             max-width: 1400px;
             margin: 20px auto;
             background-color: #fff;
@@ -24,194 +42,252 @@
             min-height: 90vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
         }
 
         /* Estado de Bloqueio (CRÍTICO: Impede uso sem login) */
         .pdv-container.locked {
             pointer-events: none;
+            filter: blur(5px);
             opacity: 0.5;
         }
 
         /* Header */
         .pdv-header {
-            background-color: #004d99;
-            color: white;
+            background-color: var(--primary-color);
+            color: var(--pdv-total-text);
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
+            font-size: 1.1em;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-
         .pdv-header h1 {
             margin: 0;
-            font-size: 1.8em;
-        }
-
-        .info-box {
-            background-color: #e6f0ff;
-            color: #004d99;
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-
-        /* Main Content */
-        .pdv-main {
-            display: flex;
-            flex-grow: 1;
-        }
-
-        /* Left Side (Input and List) */
-        .pdv-left {
-            flex: 2.5;
-            padding: 20px;
-            border-right: 1px solid #e0e7ee;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
+            font-size: 1.5em;
             display: flex;
             align-items: center;
         }
-
-        .input-group input {
-            flex-grow: 1;
-            padding: 12px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            font-size: 1.1em;
-            transition: border-color 0.3s;
+        .pdv-header i {
+            margin-right: 10px;
         }
 
-        .input-group input:focus {
-            border-color: #007bff;
+        /* Layout Principal: Carrinho (Esquerda) e Resumo (Direita) */
+        .pdv-main {
+            display: flex;
+            flex: 1; /* Permite que o conteúdo principal preencha o espaço */
+            min-height: 0; /* Ajuda o flexbox a calcular o tamanho */
+        }
+
+        /* Área do Carrinho (Lista de Itens) */
+        .cart-area {
+            flex: 2; /* Ocupa mais espaço */
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            min-height: 0;
+        }
+        .cart-area h2 {
+            color: #333;
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* Input de Produto/Código de Barras */
+        .product-input-group {
+            display: flex;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        #produtoInput {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid var(--primary-color);
+            border-right: none;
+            font-size: 1.2em;
             outline: none;
         }
-
-        .venda-list {
-            list-style: none;
-            padding: 0;
-            max-height: 60vh;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
+        #searchBtn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: background-color 0.2s;
+        }
+        #searchBtn:hover {
+            background-color: var(--secondary-color);
         }
 
-        .venda-item {
-            display: flex;
-            justify-content: space-between;
+        /* Tabela do Carrinho */
+        .cart-table-wrapper {
+            flex: 1;
+            overflow-y: auto; /* Scroll apenas na tabela */
+            margin-bottom: 10px;
+        }
+        .cart-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .cart-table th {
+            background-color: #f1f1f1;
+            color: #333;
+            text-align: left;
+            padding: 12px 15px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .cart-table td {
             padding: 12px 15px;
             border-bottom: 1px solid #eee;
+        }
+        .cart-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        .table-center { text-align: center; }
+        .table-right { text-align: right; }
+
+        /* Botão de Remover Item */
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
             font-size: 1em;
+            transition: color 0.2s;
+            padding: 5px;
+        }
+        .remove-btn:hover {
+            color: #a00;
         }
 
-        .venda-item:last-child {
-            border-bottom: none;
-        }
-
-        .item-details {
-            flex-grow: 1;
-        }
-
-        .item-name {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .item-price, .item-qty {
-            margin-left: 15px;
-            text-align: right;
-        }
-
-        .item-price {
-            min-width: 80px;
-            font-weight: 700;
-            color: #007bff;
-        }
-
-        /* Right Side (Totals and Actions) */
-        .pdv-right {
-            flex: 1;
+        /* Área de Resumo (Direita) */
+        .summary-area {
+            flex: 1; /* Ocupa 1/3 do espaço */
             padding: 20px;
-            background-color: #f0f5ff;
-            border-bottom-right-radius: 12px;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+        }
+        .summary-area h2 {
+            color: #333;
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
         }
 
+        /* Totais */
         .totals-box {
-            border: 1px solid #cce5ff;
-            background-color: #e6f0ff;
+            background-color: var(--pdv-total-bg);
+            color: var(--pdv-total-text);
             padding: 20px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            order: 2; /* Move para o final */
         }
-
-        .total-row {
+        .totals-row {
             display: flex;
             justify-content: space-between;
-            font-size: 1.2em;
             padding: 8px 0;
-            border-top: 1px dashed #cce5ff;
+            font-size: 1.1em;
         }
-
-        .total-row:first-child {
-            border-top: none;
-        }
-
-        #totalVendaValue {
+        .totals-row.grand-total {
+            border-top: 2px solid var(--warning-color);
             font-size: 1.8em;
-            font-weight: 900;
-            color: #004d99;
+            font-weight: bold;
+            padding-top: 15px;
+            margin-top: 10px;
+            color: var(--warning-color);
         }
 
-        .action-buttons button {
+        /* Ações e Desconto */
+        .action-controls {
+            flex: 1; /* Ocupa o espaço restante */
+            display: flex;
+            flex-direction: column;
+            order: 1; /* Move para o início */
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-group input, .form-group select {
             width: 100%;
-            padding: 15px;
-            font-size: 1.2em;
-            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+        
+        /* Botão de Fechar Venda */
+        #fecharVendaBtn {
+            background-color: var(--success-color);
+            color: white;
             border: none;
+            padding: 15px;
+            font-size: 1.4em;
+            font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
+            transition: background-color 0.2s, transform 0.1s;
+            margin-top: 20px;
         }
-
-        #fecharVendaBtn {
-            background-color: #28a745;
-            color: white;
-            font-weight: bold;
-        }
-
         #fecharVendaBtn:hover {
-            background-color: #218838;
+            background-color: #1e7e34;
             transform: translateY(-2px);
         }
-
-        #cancelarVendaBtn {
-            background-color: #dc3545;
-            color: white;
+        #fecharVendaBtn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
         }
 
-        #cancelarVendaBtn:hover {
-            background-color: #c82333;
-            transform: translateY(-2px);
-        }
-
-        /* Modal de Pagamento (Adaptado do login, mas para pagamento) */
-        .modal {
+        /* Mensagens de Feedback */
+        #feedbackMessage {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
             display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .msg-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .msg-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .msg-info { background-color: #cce5ff; color: #004085; border: 1px solid #b8daff; }
+
+        /* ========================================================== */
+        /* ESTILOS DOS MODAIS (Autenticação e Pagamento)              */
+        /* ========================================================== */
+
+        .modal {
             position: fixed;
-            z-index: 1001;
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0, 0, 0, 0.6);
-            align-items: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
             justify-content: center;
+            align-items: center;
         }
 
         .modal.active-modal {
@@ -222,84 +298,109 @@
             background-color: #fff;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             width: 90%;
-            max-width: 400px;
-            text-align: center;
+            max-width: 500px;
+            animation: fadeIn 0.3s ease-out;
         }
 
-        .modal-content h2 {
-            color: #007bff;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-content h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
             margin-bottom: 20px;
         }
 
-        .modal-content label {
-            display: block;
-            text-align: left;
-            margin-top: 10px;
-            font-weight: 600;
+        .modal-content button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
 
-        .modal-content input, .modal-content select {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
+        .modal-content .modal-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
         }
 
-        .modal-actions {
-            margin-top: 20px;
+        #processPaymentBtn {
+            background-color: var(--success-color);
+            color: white;
+        }
+        #processPaymentBtn:hover {
+            background-color: #1e7e34;
+        }
+        #cancelPaymentBtn, #logoutBtn {
+            background-color: #ccc;
+            color: #333;
+        }
+        #cancelPaymentBtn:hover, #logoutBtn:hover {
+            background-color: #aaa;
+        }
+
+        /* Estilos do Modal de Pagamento (específicos) */
+        .payment-summary {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .payment-summary p {
+            margin: 5px 0;
+            font-size: 1.1em;
+            font-weight: bold;
             display: flex;
             justify-content: space-between;
         }
-        
-        .modal-actions button {
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 1em;
-            cursor: pointer;
+        .payment-summary .total {
+            color: var(--primary-color);
+        }
+        .payment-summary .troco {
+            color: var(--success-color);
+            font-size: 1.2em;
         }
 
-        .modal-actions #confirmPaymentBtn {
-            background-color: #28a745;
-            color: white;
-        }
-
-        .modal-actions #cancelPaymentBtn {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        .discount-group {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .discount-group label {
-            margin-right: 10px;
-            font-weight: normal;
-        }
-
-        .discount-group input {
-            width: 80px;
-            text-align: right;
-            padding: 5px;
-        }
-
-        /* Responsividade básica */
-        @media (max-width: 768px) {
+        /* Responsividade Básica */
+        @media (max-width: 900px) {
             .pdv-main {
                 flex-direction: column;
             }
-            .pdv-left {
+            .cart-area {
                 border-right: none;
-                border-bottom: 1px solid #e0e7ee;
+                border-bottom: 1px solid #ddd;
             }
-            .venda-list {
-                max-height: 40vh;
+            .summary-area {
+                order: 1; /* Coloca o resumo acima do carrinho em telas pequenas */
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .totals-box {
+                width: 100%;
+                margin-top: 10px;
+            }
+            .action-controls {
+                width: 100%;
+                margin-bottom: 10px;
+                order: 2;
+                flex-direction: row;
+                gap: 15px;
+            }
+            .form-group {
+                flex: 1;
+                min-width: 150px;
+            }
+            #fecharVendaBtn {
+                width: 100%;
+                margin-top: 10px;
             }
         }
 
@@ -307,345 +408,584 @@
 </head>
 <body>
 
-<div class="pdv-container locked">
-    <!-- Header -->
-    <div class="pdv-header">
-        <h1>Frente de Caixa (PDV)</h1>
-        <div class="info-box">
-            <span id="operadorInfo">Carregando...</span>
+    <div class="pdv-container locked">
+        <header class="pdv-header">
+            <h1><i class="fas fa-cash-register"></i> Frente de Caixa (PDV)</h1>
+            <div id="operadorInfo">Carregando Operador...</div>
+            <button id="logoutBtn" style="background: none; border: none; color: white; cursor: pointer; font-size: 1.2em;"><i class="fas fa-sign-out-alt"></i></button>
+        </header>
+
+        <main class="pdv-main">
+            <!-- Área do Carrinho (Esquerda) -->
+            <section class="cart-area">
+                <h2>Itens da Venda</h2>
+
+                <div class="product-input-group">
+                    <input type="text" id="produtoInput" placeholder="Código de Barras ou F4" autofocus>
+                    <button id="searchBtn" onclick="searchProduct()"><i class="fas fa-search"></i> Buscar</button>
+                </div>
+                
+                <p id="feedbackMessage" style="display: none;"></p>
+
+                <div class="cart-table-wrapper">
+                    <table class="cart-table">
+                        <thead>
+                            <tr>
+                                <th>Cód. Barras</th>
+                                <th>Produto</th>
+                                <th class="table-right">Preço Un.</th>
+                                <th class="table-center">Qtd</th>
+                                <th class="table-right">Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="vendaListBody">
+                            <!-- Itens serão inseridos aqui pelo JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+            </section>
+
+            <!-- Área de Resumo (Direita) -->
+            <aside class="summary-area">
+                <h2>Resumo da Transação</h2>
+                
+                <div class="action-controls">
+                    <!-- Campo de Desconto -->
+                    <div class="form-group">
+                        <label for="descontoInput">Desconto (%)</label>
+                        <input type="number" id="descontoInput" value="0" min="0" max="100">
+                    </div>
+
+                    <!-- Botão de Fechar Venda -->
+                    <button id="fecharVendaBtn" disabled>
+                        <i class="fas fa-credit-card"></i> Fechar Venda (F10)
+                    </button>
+                </div>
+                
+                <div class="totals-box">
+                    <div class="totals-row">
+                        <span>Bruto:</span>
+                        <span id="totalBrutoDisplay">R$ 0,00</span>
+                    </div>
+                    <div class="totals-row">
+                        <span>Desconto:</span>
+                        <span id="descontoValorDisplay">R$ 0,00</span>
+                    </div>
+                    <div class="totals-row grand-total">
+                        <span>Total a Pagar:</span>
+                        <span id="totalLiquidoDisplay">R$ 0,00</span>
+                    </div>
+                </div>
+                
+            </aside>
+        </main>
+    </div>
+
+    <!-- Modal de Autenticação (Reutilizado do index.html para Bloqueio) -->
+    <div id="authModal" class="modal active-modal">
+        <div class="modal-content">
+            <h3>PDV Bloqueado - Requer Login</h3>
+            <p>Sua sessão expirou ou o PDV foi bloqueado (F12). Por favor, faça o login novamente na página principal.</p>
+            <div class="modal-footer">
+                <button id="redirectLoginBtn"><i class="fas fa-sign-in-alt"></i> Ir para Login</button>
+            </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="pdv-main">
-        <!-- Left Side: Input and List -->
-        <div class="pdv-left">
-            <h2>Registro de Itens</h2>
-            <div class="input-group">
-                <input type="text" id="produtoInput" placeholder="Código de Barras ou F2 para busca" autofocus>
-            </div>
-            <ul class="venda-list" id="vendaList">
-                <!-- Itens da venda serão inseridos aqui -->
-            </ul>
-        </div>
-
-        <!-- Right Side: Totals and Actions -->
-        <div class="pdv-right">
-            <h2>Resumo da Venda</h2>
-            <div class="totals-box">
-                <div class="total-row">
-                    <span>Subtotal:</span>
-                    <span id="subtotalValue">R$ 0,00</span>
-                </div>
-                <div class="total-row discount-group">
-                    <label for="descontoInput">Desconto (%):</label>
-                    <input type="number" id="descontoInput" value="0" min="0" max="100">
-                    <span id="descontoValue">R$ 0,00</span>
-                </div>
-                <div class="total-row" style="font-weight: bold; border-top: 2px solid #004d99; margin-top: 10px;">
-                    <span>TOTAL:</span>
-                    <span id="totalVendaValue">R$ 0,00</span>
-                </div>
+    <!-- Modal de Pagamento (Novo) -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <h3><i class="fas fa-money-check-alt"></i> Finalizar Pagamento</h3>
+            
+            <div class="payment-summary">
+                <p><span>Total Venda:</span> <span id="paymentTotalDisplay" class="total">R$ 0,00</span></p>
+                <p><span>Valor Recebido:</span> <span id="paymentRecebidoDisplay">R$ 0,00</span></p>
+                <p><span>Troco:</span> <span id="paymentTrocoDisplay" class="troco">R$ 0,00</span></p>
             </div>
 
-            <div class="action-buttons">
-                <button id="fecharVendaBtn">FECHAR VENDA (F1)</button>
-                <button id="cancelarVendaBtn" onclick="cancelVenda()">CANCELAR VENDA (F12)</button>
-            </div>
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label for="paymentMethod">Método de Pagamento</label>
+                    <select id="paymentMethod" required>
+                        <option value="">Selecione...</option>
+                        <option value="CARTAO_DEBITO">Cartão de Débito</option>
+                        <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                        <option value="PIX">PIX</option>
+                        <option value="DINHEIRO">Dinheiro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="valorRecebidoInput">Valor Recebido (Dinheiro / Cartão)</label>
+                    <input type="number" id="valorRecebidoInput" step="0.01" min="0.01" value="0.00" required>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="cancelPaymentBtn"><i class="fas fa-times"></i> Cancelar</button>
+                    <button type="submit" id="processPaymentBtn"><i class="fas fa-check"></i> Processar Pagamento</button>
+                </div>
+            </form>
         </div>
     </div>
-</div>
-
-<!-- Modal de Pagamento -->
-<div id="paymentModal" class="modal">
-    <div class="modal-content">
-        <h2>Pagamento</h2>
-        <p>Valor a Pagar: <strong id="valorPagarModal">R$ 0,00</strong></p>
-
-        <label for="tipoPagamento">Método de Pagamento:</label>
-        <select id="tipoPagamento">
-            <option value="CARTAO_CREDITO">Cartão de Crédito</option>
-            <option value="CARTAO_DEBITO">Cartão de Débito</option>
-            <option value="PIX">PIX</option>
-            <option value="DINHEIRO">Dinheiro</option>
-        </select>
-
-        <label for="valorRecebido">Valor Recebido:</label>
-        <input type="number" id="valorRecebido" placeholder="0.00" step="0.01" min="0">
-
-        <p>Troco: <strong id="trocoModal">R$ 0,00</strong></p>
-
-        <div class="modal-actions">
-            <button id="confirmPaymentBtn">Confirmar Pagamento</button>
-            <button id="cancelPaymentBtn">Cancelar</button>
-        </div>
-        <p id="paymentFeedback" style="color: red; margin-top: 15px;"></p>
-    </div>
-</div>
-
-
-<!-- Mensagem de feedback geral (erro ou sucesso) -->
-<div id="feedbackMessage" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #007bff; color: white; padding: 10px 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); display: none; z-index: 1000;"></div>
 
 <script>
-    // Variáveis de Estado Global
+    // Variáveis Globais de Sessão (preenchidas no DOMContentLoaded)
     let operadorMatricula = null;
     let operadorNome = null;
-    let operadorToken = null; // CRÍTICO: Token JWT
+    let operadorToken = null;
 
-    let venda = []; // Lista de produtos na venda
-    let subtotal = 0;
-    let descontoPercentual = 0;
-    let totalVenda = 0;
+    // Estrutura de Dados da Venda (Controle do Carrinho)
+    let vendaAtual = {
+        itens: [], // {barcode, nome, precoVenda, quantidade, subtotal}
+        totalBruto: 0,
+        descontoPercentual: 0,
+        valorDesconto: 0,
+        totalLiquido: 0,
+        paymentMethod: null,
+        valorRecebido: 0,
+        troco: 0
+    };
 
     // ==========================================================
-    // FUNÇÕES UTILS
+    // UTILITÁRIOS
     // ==========================================================
 
+    /**
+     * Formata um valor numérico para o padrão monetário BRL (R$).
+     * @param {number} value - O valor a ser formatado.
+     * @returns {string} - O valor formatado como string.
+     */
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value);
+    }
+
+    /**
+     * Exibe uma mensagem de feedback na tela.
+     * @param {string} message - A mensagem a ser exibida.
+     * @param {('success'|'error'|'info')} type - O tipo de mensagem (para cores).
+     */
+    function showFeedback(message, type) {
+        const msgElement = document.getElementById('feedbackMessage');
+        msgElement.textContent = message;
+        msgElement.className = `msg-${type}`;
+        msgElement.style.opacity = 0;
+        msgElement.style.display = 'block';
+
+        setTimeout(() => {
+            msgElement.style.opacity = 1;
+        }, 10);
+
+        // Oculta a mensagem após 5 segundos
+        setTimeout(() => {
+            msgElement.style.opacity = 0;
+            setTimeout(() => {
+                msgElement.style.display = 'none';
+            }, 300);
+        }, 5000);
+    }
+
+    /**
+     * Bloqueia o PDV e redireciona para o login (chamado em caso de falta de autenticação).
+     */
     function blockPDV() {
         sessionStorage.clear();
-        window.location.href = 'index.html';
-    }
-    
-    // NOVO: Função para obter os cabeçalhos de autenticação JWT
-    function getAuthHeaders() {
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${operadorToken}` // CRÍTICO: Envio do Token
-        };
-    }
-
-    function showFeedback(message, isSuccess = true) {
-        const feedbackEl = document.getElementById('feedbackMessage');
-        feedbackEl.textContent = message;
-        feedbackEl.style.backgroundColor = isSuccess ? '#28a745' : '#dc3545';
-        feedbackEl.style.display = 'block';
-        setTimeout(() => feedbackEl.style.display = 'none', 3000);
-    }
-
-    function formatCurrency(value) {
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-    }
-
-    // ==========================================================
-    // LÓGICA DO PDV
-    // ==========================================================
-
-    function updateTotals() {
-        subtotal = venda.reduce((sum, item) => sum + (item.preco_venda * item.quantidade), 0);
-        
-        descontoPercentual = parseFloat(document.getElementById('descontoInput').value) || 0;
-        if (descontoPercentual < 0) descontoPercentual = 0;
-        if (descontoPercentual > 100) descontoPercentual = 100;
-        
-        const valorDesconto = subtotal * (descontoPercentual / 100);
-        totalVenda = subtotal - valorDesconto;
-
-        document.getElementById('subtotalValue').textContent = formatCurrency(subtotal);
-        document.getElementById('descontoValue').textContent = formatCurrency(valorDesconto);
-        document.getElementById('totalVendaValue').textContent = formatCurrency(totalVenda);
-    }
-
-    function renderVendaList() {
-        const listEl = document.getElementById('vendaList');
-        listEl.innerHTML = '';
-        venda.forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'venda-item';
-            li.innerHTML = `
-                <div class="item-details">
-                    <span class="item-name">${item.nome}</span>
-                    <span class="item-qty">(${item.quantidade} x ${formatCurrency(item.preco_venda)})</span>
-                </div>
-                <span class="item-price">${formatCurrency(item.preco_venda * item.quantidade)}</span>
-            `;
-            listEl.appendChild(li);
+        document.querySelector('.pdv-container').classList.add('locked');
+        document.getElementById('authModal').classList.add('active-modal');
+        document.getElementById('redirectLoginBtn').addEventListener('click', () => {
+             window.location.href = 'index.html';
         });
-        updateTotals();
+        showFeedback("Sessão expirada. Redirecionando...", 'error');
     }
 
-    async function searchProduct() {
-        const barcode = document.getElementById('produtoInput').value.trim();
-        if (!barcode) return;
+    // ==========================================================
+    // LÓGICA DO CARRINHO
+    // ==========================================================
 
-        showFeedback("Buscando produto...", true);
+    /**
+     * Busca um produto pelo código de barras no backend e o adiciona ao carrinho.
+     */
+    async function searchProduct() {
+        const inputElement = document.getElementById('produtoInput');
+        const barcode = inputElement.value.trim();
+        inputElement.value = ''; // Limpa o input imediatamente
+        inputElement.focus();
+
+        if (!barcode) {
+            showFeedback("Por favor, digite ou escaneie um Código de Barras.", 'info');
+            return;
+        }
+
+        showFeedback(`Buscando produto: ${barcode}...`, 'info');
 
         try {
-            const response = await fetch(`/api/erp/produtos/consultar/${barcode}`, {
+            const response = await fetch(`/api/erp/produtos/buscar/${barcode}`, {
                 method: 'GET',
-                // CRÍTICO: Usa a nova função de headers para enviar o JWT
-                headers: getAuthHeaders() 
+                headers: {
+                    'Content-Type': 'application/json',
+                    // CRÍTICO: Envia as credenciais nos headers para o hook before_request do Flask
+                    'X-User-Matricula': operadorMatricula,
+                    'X-User-Nome': operadorNome,
+                    'X-User-Token': operadorToken // O token é o dado crucial de autorização
+                }
             });
 
             const data = await response.json();
 
             if (response.ok && data.success) {
-                const produto = data.produto;
-                
-                // Verifica se o produto já está na venda
-                const existingItem = venda.find(item => item.codigoBarra === barcode);
-                
-                if (existingItem) {
-                    existingItem.quantidade += 1;
-                } else {
-                    venda.push({
-                        ...produto,
-                        quantidade: 1
-                    });
-                }
-
-                renderVendaList();
-                showFeedback(`Adicionado: ${produto.nome}`, true);
-
+                const product = data.produto;
+                addProductToCart(product, 1);
+                showFeedback(`Produto adicionado: ${product.nome}`, 'success');
             } else {
-                showFeedback(data.message || 'Produto não encontrado.', false);
+                showFeedback(data.message || `Produto ${barcode} não encontrado.`, 'error');
             }
+
         } catch (error) {
             console.error('Erro na busca de produto:', error);
-            showFeedback('Erro ao comunicar com o servidor.', false);
-        }
-
-        document.getElementById('produtoInput').value = '';
-        document.getElementById('produtoInput').focus();
-    }
-    
-    function cancelVenda() {
-        if(confirm("Tem certeza que deseja cancelar esta venda?")) {
-            venda = [];
-            renderVendaList();
-            showFeedback("Venda cancelada.", true);
+            showFeedback('Erro de conexão ao buscar o produto. Tente novamente.', 'error');
         }
     }
 
-    function confirmVenda() {
-        if (venda.length === 0) {
-            showFeedback("Não há itens na venda.", false);
+    /**
+     * Adiciona ou atualiza um produto no carrinho.
+     * @param {object} productData - Dados do produto (deve incluir codigoBarra, nome, precoVenda, estoque).
+     * @param {number} quantity - Quantidade a ser adicionada.
+     */
+    function addProductToCart(productData, quantity = 1) {
+        if (productData.estoque < 1) {
+            showFeedback(`Estoque indisponível para o produto: ${productData.nome}`, 'error');
             return;
         }
 
-        // Abre o modal de pagamento
-        document.getElementById('valorPagarModal').textContent = formatCurrency(totalVenda);
-        document.getElementById('valorRecebido').value = totalVenda.toFixed(2);
-        document.getElementById('paymentModal').classList.add('active-modal');
-        document.getElementById('valorRecebido').focus();
-        
-        // Listener para cálculo do troco em tempo real no modal
-        document.getElementById('valorRecebido').addEventListener('input', updateTrocoModal);
-        updateTrocoModal(); // Calcula o troco inicial
-    }
-    
-    function updateTrocoModal() {
-        const valorRecebido = parseFloat(document.getElementById('valorRecebido').value) || 0;
-        const troco = Math.max(0, valorRecebido - totalVenda);
-        document.getElementById('trocoModal').textContent = formatCurrency(troco);
-    }
-    
-    async function handlePayment() {
-        const tipoPagamento = document.getElementById('tipoPagamento').value;
-        const valorRecebido = parseFloat(document.getElementById('valorRecebido').value) || 0;
-        
-        if (valorRecebido < totalVenda) {
-            document.getElementById('paymentFeedback').textContent = "Valor recebido insuficiente.";
-            return;
-        }
-        
-        document.getElementById('paymentFeedback').textContent = "Processando pagamento...";
-        
-        const vendaData = {
-            itens: venda.map(item => ({
-                codigoBarra: item.codigoBarra,
-                quantidade: item.quantidade,
-                preco_unitario: item.preco_venda,
-                nome: item.nome
-            })),
-            desconto_percentual: descontoPercentual,
-            total_venda: totalVenda,
-            pagamento: {
-                metodo: tipoPagamento,
-                valor_recebido: valorRecebido,
-                valor_pago: totalVenda // O valor efetivo da transação
+        const existingItem = vendaAtual.itens.find(item => item.barcode === productData.codigoBarra);
+        const precoVenda = parseFloat(productData.precoVenda);
+
+        if (existingItem) {
+            // Verifica o estoque antes de incrementar
+            if (existingItem.quantidade + quantity > productData.estoque) {
+                showFeedback(`Limite de estoque (${productData.estoque}un) atingido para ${productData.nome}.`, 'warning');
+                return;
             }
+            existingItem.quantidade += quantity;
+            existingItem.subtotal = existingItem.quantidade * precoVenda;
+        } else {
+            vendaAtual.itens.push({
+                barcode: productData.codigoBarra,
+                nome: productData.nome,
+                precoVenda: precoVenda,
+                quantidade: quantity,
+                subtotal: quantity * precoVenda,
+                estoqueAtual: productData.estoque // Mantém o estoque atual para checagem
+            });
+        }
+        
+        // Remove a mensagem de carrinho vazio
+        const emptyRow = document.getElementById('emptyCartRow');
+        if (emptyRow) emptyRow.remove();
+
+        updateTotals();
+        renderVendaList();
+    }
+
+    /**
+     * Remove um item do carrinho ou diminui a quantidade.
+     * @param {string} barcode - Código de barras do item a ser removido/alterado.
+     * @param {number} index - Índice do item na lista.
+     */
+    function removeItemFromCart(index) {
+        const item = vendaAtual.itens[index];
+        if (item.quantidade > 1) {
+            item.quantidade -= 1;
+            item.subtotal = item.quantidade * item.precoVenda;
+        } else {
+            // Remove o item se a quantidade for 1
+            vendaAtual.itens.splice(index, 1);
+        }
+        
+        updateTotals();
+        renderVendaList();
+        showFeedback(`Item ${item.nome} removido/ajustado.`, 'info');
+    }
+
+    /**
+     * Recalcula todos os totais da venda e atualiza o display.
+     */
+    function updateTotals() {
+        // 1. Calcula o total bruto
+        vendaAtual.totalBruto = vendaAtual.itens.reduce((sum, item) => sum + item.subtotal, 0);
+
+        // 2. Aplica o desconto
+        const descontoPercentual = parseFloat(document.getElementById('descontoInput').value) || 0;
+        vendaAtual.descontoPercentual = Math.min(100, Math.max(0, descontoPercentual)); // Garante 0-100%
+
+        vendaAtual.valorDesconto = vendaAtual.totalBruto * (vendaAtual.descontoPercentual / 100);
+        
+        // 3. Calcula o total líquido
+        vendaAtual.totalLiquido = vendaAtual.totalBruto - vendaAtual.valorDesconto;
+
+        // Atualiza o display
+        document.getElementById('totalBrutoDisplay').textContent = formatCurrency(vendaAtual.totalBruto);
+        document.getElementById('descontoValorDisplay').textContent = formatCurrency(vendaAtual.valorDesconto);
+        document.getElementById('totalLiquidoDisplay').textContent = formatCurrency(vendaAtual.totalLiquido);
+        
+        // Habilita o botão de fechar venda se houver itens
+        const fecharBtn = document.getElementById('fecharVendaBtn');
+        fecharBtn.disabled = vendaAtual.itens.length === 0 || vendaAtual.totalLiquido <= 0;
+    }
+
+    /**
+     * Renderiza a lista de itens no corpo da tabela.
+     */
+    function renderVendaList() {
+        const listBody = document.getElementById('vendaListBody');
+        listBody.innerHTML = ''; // Limpa a lista atual
+
+        if (vendaAtual.itens.length === 0) {
+            listBody.innerHTML = `
+                <tr id="emptyCartRow"><td colspan="6" class="table-center" style="padding: 30px; color: #888;">
+                    Nenhum item adicionado. Escaneie um produto para começar.
+                </td></tr>
+            `;
+            return;
+        }
+
+        vendaAtual.itens.forEach((item, index) => {
+            const row = listBody.insertRow();
+            row.insertCell(0).textContent = item.barcode;
+            row.insertCell(1).textContent = item.nome;
+            row.insertCell(2).textContent = formatCurrency(item.precoVenda);
+            row.cells[2].classList.add('table-right');
+            row.insertCell(3).textContent = item.quantidade;
+            row.cells[3].classList.add('table-center');
+            row.insertCell(4).textContent = formatCurrency(item.subtotal);
+            row.cells[4].classList.add('table-right');
+            
+            // Botão de remover/ajustar
+            const actionCell = row.insertCell(5);
+            actionCell.classList.add('table-center');
+            actionCell.innerHTML = `<button class="remove-btn" onclick="removeItemFromCart(${index})" title="Remover 1 unidade"><i class="fas fa-trash-alt"></i></button>`;
+        });
+    }
+
+
+    // ==========================================================
+    // LÓGICA DE FECHAMENTO DE VENDA E PAGAMENTO
+    // ==========================================================
+
+    /**
+     * Abre o modal de pagamento, preparando a interface com o total líquido.
+     */
+    function confirmVenda() {
+        if (vendaAtual.itens.length === 0) {
+            showFeedback("Adicione itens à venda antes de fechar.", 'warning');
+            return;
+        }
+        
+        const total = vendaAtual.totalLiquido;
+        document.getElementById('paymentTotalDisplay').textContent = formatCurrency(total);
+        document.getElementById('paymentRecebidoDisplay').textContent = formatCurrency(total); // Sugere o total como valor recebido
+        document.getElementById('paymentTrocoDisplay').textContent = formatCurrency(0); // Troco zero inicial
+
+        // Reseta o formulário do modal para evitar dados de venda anterior
+        document.getElementById('paymentMethod').value = ''; 
+        document.getElementById('valorRecebidoInput').value = total.toFixed(2);
+        
+        // Adiciona listener para calcular o troco em tempo real
+        document.getElementById('valorRecebidoInput').addEventListener('input', calculateTroco);
+        document.getElementById('paymentModal').classList.add('active-modal');
+        document.getElementById('paymentMethod').focus();
+    }
+    
+    /**
+     * Calcula e exibe o troco no modal de pagamento.
+     */
+    function calculateTroco() {
+        const total = vendaAtual.totalLiquido;
+        const valorRecebido = parseFloat(document.getElementById('valorRecebidoInput').value) || 0;
+        const troco = valorRecebido > total ? valorRecebido - total : 0;
+        
+        document.getElementById('paymentRecebidoDisplay').textContent = formatCurrency(valorRecebido);
+        document.getElementById('paymentTrocoDisplay').textContent = formatCurrency(troco);
+        
+        // Condição para habilitar/desabilitar o botão de processamento
+        const paymentMethod = document.getElementById('paymentMethod').value;
+        const processBtn = document.getElementById('processPaymentBtn');
+        
+        if (!paymentMethod || valorRecebido < total) {
+            processBtn.disabled = true;
+            processBtn.textContent = (valorRecebido < total) ? "Valor Insuficiente" : "Selecione o Método";
+            processBtn.style.backgroundColor = var(--danger-color);
+        } else {
+            processBtn.disabled = false;
+            processBtn.textContent = "Processar Pagamento";
+            processBtn.style.backgroundColor = var(--success-color);
+        }
+    }
+
+
+    /**
+     * Finaliza a venda e envia os dados para o backend (API).
+     */
+    async function processPayment(e) {
+        e.preventDefault();
+        
+        const paymentMethod = document.getElementById('paymentMethod').value;
+        const valorRecebido = parseFloat(document.getElementById('valorRecebidoInput').value) || 0;
+        const total = vendaAtual.totalLiquido;
+
+        if (total <= 0) {
+            showFeedback("Venda inválida. Total a pagar é zero ou negativo.", 'error');
+            return;
+        }
+
+        if (!paymentMethod) {
+            showFeedback("Por favor, selecione o Método de Pagamento.", 'warning');
+            return;
+        }
+        
+        if (valorRecebido < total) {
+            showFeedback("Valor recebido é menor que o total da venda.", 'error');
+            return;
+        }
+
+        document.getElementById('processPaymentBtn').disabled = true;
+        document.getElementById('processPaymentBtn').textContent = 'Processando...';
+
+        // Atualiza a estrutura de venda para o envio
+        vendaAtual.paymentMethod = paymentMethod;
+        vendaAtual.valorRecebido = valorRecebido;
+        vendaAtual.troco = valorRecebido - total;
+        
+        // Prepara os dados da venda para a API
+        const vendaPayload = {
+            itens: vendaAtual.itens, // Inclui barcode, nome, precoVenda, quantidade, subtotal
+            total_bruto: vendaAtual.totalBruto,
+            desconto_percentual: vendaAtual.descontoPercentual,
+            valor_desconto: vendaAtual.valorDesconto,
+            total_liquido: vendaAtual.totalLiquido,
+            metodo_pagamento: vendaAtual.paymentMethod,
+            valor_recebido: vendaAtual.valorRecebido,
+            troco: vendaAtual.troco
         };
 
         try {
             const response = await fetch('/api/erp/vendas/finalizar', {
                 method: 'POST',
-                // CRÍTICO: Envia o JWT no cabeçalho
-                headers: getAuthHeaders(),
-                body: JSON.stringify(vendaData)
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-User-Matricula': operadorMatricula,
+                    'X-User-Nome': operadorNome,
+                    'X-User-Token': operadorToken
+                },
+                body: JSON.stringify(vendaPayload)
             });
 
             const data = await response.json();
 
-            document.getElementById('paymentModal').classList.remove('active-modal');
-
             if (response.ok && data.success) {
-                showFeedback(data.message, true);
-                // Reseta a venda e o estado
-                venda = [];
-                descontoPercentual = 0;
-                document.getElementById('descontoInput').value = 0;
-                renderVendaList();
+                // SUCESSO!
+                document.getElementById('paymentModal').classList.remove('active-modal');
+                showFeedback(`Venda ${data.venda_id} Finalizada! Troco: ${formatCurrency(vendaAtual.troco)}`, 'success');
+                clearVenda();
             } else {
-                showFeedback(data.message || 'Falha ao finalizar venda.', false);
+                // FALHA (e.g., Falha no Gateway de Pagamento, Falha no Estoque, etc.)
+                showFeedback(data.message || "Erro ao finalizar a venda. Tente novamente.", 'error');
+                // Re-habilita o botão para nova tentativa
+                document.getElementById('processPaymentBtn').disabled = false;
+                document.getElementById('processPaymentBtn').textContent = 'Processar Pagamento';
             }
 
         } catch (error) {
-            console.error('Erro ao finalizar venda:', error);
-            document.getElementById('paymentModal').classList.remove('active-modal');
-            showFeedback('Erro ao comunicar com o servidor na finalização da venda.', false);
+            console.error('Erro de conexão ao finalizar a venda:', error);
+            showFeedback('Erro de rede ao conectar com o servidor. Verifique sua internet.', 'error');
+            document.getElementById('processPaymentBtn').disabled = false;
+            document.getElementById('processPaymentBtn').textContent = 'Processar Pagamento';
         }
+    }
+    
+    /**
+     * Reseta a venda para iniciar uma nova.
+     */
+    function clearVenda() {
+        vendaAtual = {
+            itens: [],
+            totalBruto: 0,
+            descontoPercentual: 0,
+            valorDesconto: 0,
+            totalLiquido: 0,
+            paymentMethod: null,
+            valorRecebido: 0,
+            troco: 0
+        };
+        document.getElementById('descontoInput').value = '0';
+        document.getElementById('produtoInput').focus();
+        updateTotals();
+        renderVendaList();
     }
 
 
     // ==========================================================
-    // INICIALIZAÇÃO (AGORA SEGURA)
+    // INICIALIZAÇÃO E LISTENERS DE EVENTOS
     // ==========================================================
 
     document.addEventListener('DOMContentLoaded', () => {
         // Carrega dados da sessão
         operadorMatricula = sessionStorage.getItem('operadorMatricula');
         operadorNome = sessionStorage.getItem('operadorNome');
-        operadorToken = sessionStorage.getItem('operadorToken'); // <-- NOVO: Carrega o Token
+        operadorToken = sessionStorage.getItem('operadorToken');
 
-        // 1. CRÍTICO: Verifica Autorização (Precisa de Matrícula E Token)
+        // CRÍTICO: Verifica Autorização (Deve ter Matrícula e Token)
         if (!operadorMatricula || !operadorToken) {
-            // alert("Sessão expirada ou acesso não autorizado. Faça o login novamente.");
+            showFeedback("Sessão expirada ou acesso não autorizado. Faça o login novamente.", 'error');
             blockPDV(); // Função que limpa e redireciona
             return;
         }
 
         // Se logado, atualiza o header e desbloqueia
         document.getElementById('operadorInfo').textContent = `Operador(a): ${operadorNome || operadorMatricula}`;
+        document.getElementById('authModal').classList.remove('active-modal');
         document.querySelector('.pdv-container').classList.remove('locked');
-        
-        // Listeners
+
+        // Adiciona um listener para a tecla Enter no input principal (Busca)
         document.getElementById('produtoInput').addEventListener('keyup', (e) => {
             if (e.key === 'Enter') {
                 searchProduct();
             }
         });
 
+        // Adiciona listener para F12 (Bloqueio Rápido/Logout) e F10 (Fechamento)
         document.addEventListener('keydown', (e) => {
             if (e.key === 'F12') {
                 e.preventDefault();
-                cancelVenda();
-            } else if (e.key === 'F1') {
+                blockPDV();
+            } else if (e.key === 'F10' && !document.getElementById('fecharVendaBtn').disabled && !document.getElementById('paymentModal').classList.contains('active-modal')) {
                 e.preventDefault();
                 confirmVenda();
+            } else if (e.key === 'Escape' && document.getElementById('paymentModal').classList.contains('active-modal')) {
+                e.preventDefault();
+                document.getElementById('paymentModal').classList.remove('active-modal');
+                document.getElementById('produtoInput').focus(); // Volta o foco para o input
             }
         });
 
-        document.getElementById('descontoInput').addEventListener('change', updateTotals);
+        // Listeners do Desconto e do Fechamento de Venda
+        document.getElementById('descontoInput').addEventListener('input', updateTotals);
         document.getElementById('fecharVendaBtn').addEventListener('click', confirmVenda);
-        document.getElementById('cancelarVendaBtn').addEventListener('click', cancelVenda);
+        document.getElementById('logoutBtn').addEventListener('click', blockPDV);
 
         // Listeners do Modal de Pagamento
-        document.getElementById('confirmPaymentBtn').addEventListener('click', handlePayment);
         document.getElementById('cancelPaymentBtn').addEventListener('click', () => {
              document.getElementById('paymentModal').classList.remove('active-modal');
+             document.getElementById('produtoInput').focus();
         });
-        
+        document.getElementById('paymentForm').addEventListener('submit', processPayment);
+        // Garante que o cálculo do troco funcione ao mudar o método (pois a validação muda)
+        document.getElementById('paymentMethod').addEventListener('change', calculateTroco);
+
         // Inicialização do PDV
         renderVendaList();
         updateTotals();
